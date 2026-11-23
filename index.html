@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VEX Ref Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE work tool for a head referee at the field: fast, calm, no decoration
+   IDEA the paper match anomaly log on a clipboard: ruled rows, alliance-coloured match cards, cited rule numbers
+   PICTURE the live match list itself: red and blue alliance strips carrying violation pips for every team
+   COLOUR white ground, near-black header band, alliance red #d0122f and blue #1d4ed8, minor amber #f5b000
+   TYPE Barlow Condensed 700 for match and team numbers + Barlow for text
+   LAYOUT dark band with event and tabs on top; one 960px working column; phone: same column, forms slide up as sheets */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#111215);--ink:light-dark(#16171b,#eceef2);--mut:light-dark(#585d69,#a3a9b5);--line:light-dark(#e3e5ea,#2b2e35);--line2:light-dark(#c6c9d1,#454952);--surf:light-dark(#f4f5f7,#1a1c21);--band:#121317;--red:light-dark(#d0122f,#ff5a6c);--blue:light-dark(#1d4ed8,#7aa3ff);--redt:light-dark(#fdebee,#33151a);--bluet:light-dark(#e8eefd,#142039);--amber:#f5b000;--warnbg:light-dark(#fff5d6,#2d2510);--warnink:light-dark(#6b4500,#ffd36b);--focus:light-dark(#1d4ed8,#9bbcff)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:140px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif;overflow-x:clip}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+h2{font:700 26px/1.1 'Barlow Condensed',sans-serif;margin:0 0 8px;letter-spacing:-.01em}
+h3{font:700 19px/1.2 'Barlow Condensed',sans-serif;margin:18px 0 6px}
+.top{position:sticky;top:0;z-index:5;background:var(--band);color:#f1f2f5;padding:8px max(16px,4vw) 0}
+.bar{max-width:960px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"ev add" "sy add";column-gap:12px;align-items:center}
+.evbtn{grid-area:ev;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:none;border:0;padding:6px 0;text-align:left;min-height:48px;color:#fff}
+.evbtn .n{font:700 clamp(24px,4vw,32px)/1.05 'Barlow Condensed',sans-serif;display:flex;align-items:center;gap:8px;max-width:100%}
+.evbtn .n span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.evbtn .m{font-size:14px;color:#b8bcc6}
+.sync{grid-area:sy;padding-bottom:4px;display:inline-flex;align-items:center;gap:7px;font-size:13px;color:#c9ccd4;white-space:nowrap}
+.sync i{width:9px;height:9px;border-radius:50%;background:#e9ebef}
+.sync.busy i{background:var(--amber)}
+.sync.bad i{background:#ff5a6c}
+.add{grid-area:add;background:var(--amber);color:#211800;border:0;border-radius:10px;font:700 17px/1 Barlow,sans-serif;padding:0 18px;min-height:44px}
+.tabs{max-width:960px;margin:4px auto 0;display:flex;overflow-x:auto;scrollbar-width:none}
+.tabs button{flex:1 0 auto;background:none;border:0;border-bottom:3px solid transparent;color:#b8bcc6;font:600 16px/1 Barlow,sans-serif;padding:12px 14px 11px;min-height:46px}
+.tabs button[aria-selected=true]{color:#fff;border-bottom-color:var(--amber)}
+main{max-width:960px;margin:0 auto;padding:16px max(16px,4vw) 96px}
+.sample{margin:0 0 12px;font-size:14px;color:var(--mut)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.tools input[type=search]{flex:1 1 200px}
+input,select,textarea{font-size:16px;padding:10px 12px;border:1px solid var(--line2);border-radius:9px;background:var(--bg);min-height:44px;width:100%}
+textarea{resize:vertical;line-height:1.4}
+.tools select{width:auto;flex:0 1 auto}
+label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:15px}
+.opt{font-weight:400;color:var(--mut);font-size:14px}
+.inl{flex-direction:row;align-items:center;gap:8px;font-weight:500}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden;flex-wrap:wrap}
+.seg button{background:var(--bg);border:0;border-right:1px solid var(--line2);padding:0 14px;min-height:42px;font-weight:600}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.seg.wide{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));width:100%}
+.seg .b-red[aria-pressed=true]{background:var(--red);color:#fff}
+.seg .b-blue[aria-pressed=true]{background:var(--blue);color:#fff}
+.mrow,.trow{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:var(--bg);overflow:hidden;scroll-margin-top:140px}
+.mrow.open,.trow.open{border-color:var(--line2);box-shadow:0 2px 0 var(--line)}
+.mhead{display:grid;grid-template-columns:4.6em minmax(0,1fr) minmax(0,1fr);width:100%;background:none;border:0;padding:0;text-align:left;min-height:66px}
+.mlab{padding:10px 6px 10px 12px;display:flex;flex-direction:column;justify-content:center}
+.mlab b{font:700 25px/1 'Barlow Condensed',sans-serif}
+.mlab small{font-size:13px;color:var(--mut);white-space:nowrap}
+.all{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:8px 10px}
+.all.red{background:var(--redt);border-left:4px solid var(--red)}
+.all.blue{background:var(--bluet);border-left:4px solid var(--blue)}
+.all.tw{grid-column:span 2;background:var(--surf);border-left:4px solid var(--ink);flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start;column-gap:18px}
+.tchip{display:flex;align-items:center;gap:6px;font:600 18px/1.15 'Barlow Condensed',sans-serif;white-space:nowrap}
+.tbd{color:var(--mut)}
+.pips{display:inline-flex;gap:3px;align-items:center}
+.pips em{font:600 13px Barlow,sans-serif;font-style:normal;color:var(--mut)}
+.pip{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 1.5px var(--bg)}
+.pip.mj{border-radius:2px;background:var(--red)}
+.pip.ds{width:13px;border-radius:2px;background:repeating-linear-gradient(135deg,#16171b 0 3px,var(--amber) 3px 6px)}
+.mdet,.tdet{padding:12px;border-top:1px solid var(--line);display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
+.tdet{display:block}
+.tb{border-radius:10px;padding:12px;background:var(--surf);border-top:4px solid var(--red)}
+.tb.blue{border-top-color:var(--blue)}
+.tb.tw,.tb.auton{border-top-color:var(--ink)}
+.tbh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tlink{background:none;border:0;padding:0;text-align:left;display:flex;align-items:baseline;gap:8px;min-height:36px}
+.tlink b,.tn b{font:700 26px/1 'Barlow Condensed',sans-serif}
+.tlink span,.tn small{color:var(--mut);font-size:14px}
+.tlink:hover b{text-decoration:underline}
+.tsum{font-size:14px;color:var(--mut);white-space:nowrap}
+.h{font:700 20px/1 'Barlow Condensed',sans-serif}
+.lbl{font-weight:600;font-size:14px;margin:12px 0 6px}
+.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.quick button{min-height:46px;border-radius:9px;border:1px solid var(--line2);background:var(--bg);font-weight:700;padding:0 4px}
+.q-minor{background:var(--amber)!important;color:#211800;border-color:transparent!important}
+.q-major{background:var(--red)!important;color:#fff;border-color:transparent!important}
+.q-disabled{background:var(--ink)!important;color:var(--bg);border-color:transparent!important}
+.tag{display:inline-block;font:700 13px/1 Barlow,sans-serif;padding:5px 8px;border-radius:5px;white-space:nowrap}
+.t-minor{background:var(--amber);color:#211800}
+.t-major{background:var(--red);color:#fff}
+.t-disabled{background:var(--ink);color:var(--bg)}
+.t-note{box-shadow:inset 0 0 0 1px var(--line2);color:var(--mut)}
+.aff{font-size:13px;font-weight:700;color:var(--red);white-space:nowrap}
+.rc{font:700 16px/1 'Barlow Condensed',sans-serif;white-space:nowrap}
+.ent{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-top:8px}
+.ent .l1{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.nt{font-size:15px}
+.meta{font-size:13px;color:var(--mut)}
+.warn{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--warnink);background:var(--warnbg);border-radius:8px;padding:8px 10px;margin-top:8px}
+.warn svg{flex:none;margin-top:2px}
+.warn small{display:block;opacity:.85}
+.hint{font-size:14px;color:var(--mut);margin:6px 0}
+.none{color:var(--mut)}
+.empty{border:1px dashed var(--line2);border-radius:12px;padding:24px;text-align:left}
+.empty p{color:var(--mut);margin:4px 0 14px;max-width:52ch}
+.primary,.ghost,.danger,.actions button,.empty button{min-height:44px;border-radius:9px;border:1px solid var(--line2);background:var(--bg);padding:0 16px;font-weight:700}
+.primary{background:var(--ink)!important;color:var(--bg)!important;border-color:var(--ink)!important}
+.danger{color:var(--red)!important;border-color:color-mix(in srgb,var(--red) 50%,transparent)!important}
+.danger.solid{background:var(--red)!important;color:#fff!important}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.sp{flex:1}
+.thead{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;background:none;border:0;padding:12px;text-align:left;min-height:60px}
+.tn{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.cts{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.wdot{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--warnbg);color:var(--warnink);font-weight:700;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:4px 12px;border-radius:999px;border:1px solid var(--line2);background:var(--bg);font:600 15px/1.2 Barlow,sans-serif;max-width:100%}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .lab{font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:22ch}
+.chip.static{min-height:36px;padding:2px 4px 2px 12px;cursor:default}
+.chip.static b{font:700 17px 'Barlow Condensed',sans-serif}
+.chip small{color:var(--mut)}
+.x{background:none;border:0;min-width:36px;min-height:36px;border-radius:50%;color:var(--mut);font-size:18px}
+.sum{margin:0 0 10px;color:var(--mut)}
+.sum b{color:var(--ink);font:700 22px 'Barlow Condensed',sans-serif}
+.log{border-top:1px solid var(--line)}
+.lrow{display:grid;grid-template-columns:4.6em 4.2em 5.4em 6.4em minmax(0,1fr);gap:4px 10px;align-items:baseline;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:11px 4px;min-height:48px}
+.lrow:hover{background:var(--surf)}
+.lt{font-size:14px;color:var(--mut);white-space:nowrap}
+.lm,.lteam{font:700 18px/1.1 'Barlow Condensed',sans-serif;white-space:nowrap}
+.lx{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.pinfo{margin:0 0 12px;font-size:15px}
+.rsec h3{border-bottom:2px solid var(--ink);padding-bottom:4px}
+.rrow{display:grid;grid-template-columns:5em minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);min-height:44px}
+.rrow a{font-size:14px;white-space:nowrap}
+.cnt{border:0;background:var(--warnbg);color:var(--warnink);border-radius:999px;padding:4px 10px;font-weight:700;font-size:14px;min-height:32px}
+.card{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.count{font:600 18px Barlow,sans-serif;color:var(--mut)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.grid2 .actions{grid-column:1/-1;margin-top:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row .grow{flex:1 1 220px}
+.ex{background:var(--surf);border-radius:8px;padding:8px 10px;font:500 14px/1.4 ui-monospace,monospace;overflow-x:auto;margin:6px 0 8px}
+.sheet{position:fixed;inset:0;z-index:20;background:rgb(0 0 0/.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none}
+.card2{background:var(--bg);color:var(--ink);width:min(640px,100%);max-height:94%;overflow:auto;border-radius:16px 16px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.card2 h2:focus{outline:none}
+.card2 form>label,.card2>label{margin-top:12px}
+.outs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;border:0;padding:0;margin:14px 0 6px}
+.outs legend{font-weight:600;font-size:15px;margin-bottom:6px;padding:0}
+.outs label{position:relative;font-size:16px}
+.outs input{position:absolute;opacity:0;inset:0;margin:0}
+.outs span{display:flex;min-height:46px;align-items:center;justify-content:center;border:1px solid var(--line2);border-radius:9px;font-weight:700}
+.outs input:checked+.o-minor{background:var(--amber);color:#211800;border-color:var(--amber)}
+.outs input:checked+.o-major{background:var(--red);color:#fff;border-color:var(--red)}
+.outs input:checked+.o-disabled,.outs input:checked+.o-note{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.outs input:focus-visible+span{outline:3px solid var(--focus);outline-offset:2px}
+.chk{flex-direction:row;align-items:center;gap:10px;font-weight:500;min-height:44px}
+.chk input{width:22px;height:22px;min-height:0}
+.ctx{font-size:15px;background:var(--surf);border-radius:9px;padding:9px 11px;margin-top:10px}
+.ctx:empty{display:none}
+.ctx .new{font-size:13px;color:var(--mut)}
+#fPicks{margin-top:6px}
+#fSel:empty{display:none}
+#fRuleQ{margin-top:8px}
+.rres button{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;padding:10px 6px;border:0;border-bottom:1px solid var(--line);background:none;min-height:44px}
+.err{color:var(--red);font-weight:600;margin:8px 0 0}
+.err:empty{display:none}
+.evlist{display:grid;gap:6px;margin:8px 0 6px}
+.evitem{display:flex;flex-direction:column;align-items:flex-start;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:10px 12px;min-height:56px}
+.evitem b{font:700 20px/1.1 'Barlow Condensed',sans-serif}
+.evitem span{font-size:14px;color:var(--mut)}
+.evitem.cur{border-color:var(--ink);box-shadow:inset 4px 0 0 var(--amber)}
+.where{border:0;padding:0;margin:0;grid-column:1/-1;display:grid;gap:6px}
+.where legend{font-weight:600;font-size:15px;margin-bottom:4px;padding:0}
+.rad{flex-direction:row;align-items:flex-start;gap:10px;font-weight:400;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.rad input{width:20px;height:20px;min-height:0;margin-top:2px;flex:none}
+.rad b{display:block}
+.filebtn{display:inline-flex;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:#16171b;color:#fff;border-radius:12px;padding:10px 12px 10px 16px;display:flex;gap:12px;align-items:center;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgb(0 0 0/.25)}
+.toast[hidden]{display:none}
+.toast button{background:none;border:1px solid #5b5f69;color:var(--amber);border-radius:8px;min-height:38px;padding:0 12px;font-weight:700}
+@media(min-width:700px){.sheet{align-items:center}.card2{border-radius:16px;padding:24px}.bar{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"ev sy add"}.sync{padding-bottom:0}}
+@media(max-width:600px){.lrow{grid-template-columns:auto auto auto minmax(0,1fr)}.lx{grid-column:1/-1}.rrow{grid-template-columns:4.4em minmax(0,1fr) auto}.rrow a,.rrow .x{grid-column:3}.rrow .cnt{grid-column:3;grid-row:1}.rrow a{display:none}.mhead{grid-template-columns:4.5em minmax(0,1fr) minmax(0,1fr)}.mlab{padding:10px 4px 10px 10px}.mlab .n{display:none}.tchip{font-size:17px}.quick button{font-size:15px}}
+@media(prefers-reduced-motion:no-preference){.sheet:not([hidden]) .card2{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="bar">
+    <button class="evbtn" id="evBtn" data-act="events" aria-haspopup="dialog"><span class="n"><span id="evName">VEX Ref Log</span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></span><span class="m" id="evMeta">Match anomaly log</span></button>
+    <span class="sync" id="sync"></span>
+    <button class="add" id="addBtn" data-act="newBlank">+ Entry</button>
+  </div>
+  <nav class="tabs" aria-label="Sections">
+    <button data-act="tab" data-tab="matches">Matches</button><button data-act="tab" data-tab="teams">Teams</button><button data-act="tab" data-tab="log">Log</button><button data-act="tab" data-tab="rules">Rules</button><button data-act="tab" data-tab="event">Event</button>
+  </nav>
+</header>
+<main id="main"></main>
+<div id="sheet" class="sheet" hidden><div class="card2" id="sheetCard" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const str=(v,n)=>typeof v==='string'?v.trim().slice(0,n):(typeof v==='number'?String(v).slice(0,n):'');
+const arr=v=>Array.isArray(v)?v:[];
+const num=v=>typeof v==='number'&&isFinite(v)?v:0;
+const okSeg=s=>typeof s==='string'&&/^[A-Za-z0-9_\-.~:@+]{1,80}$/.test(s)&&s!=='.'&&s!=='..';
+const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+
+/* Rule codes with short paraphrased labels. The game manual's own wording governs. */
+const V5R=[
+['Safety','S1 Operate safely; unsafe Robots can be disabled|S2 Students need adult supervision|S3 Release form on file for every Student|S4 Robots stay inside the Field|S5 Wear safety glasses'],
+['General','G1 Treat everyone with respect|G2 Student-centered program|G3 Use common sense|G4 Work matches the Students’ skill level|G5 Accidental vs. willful Robot violations'],
+['General game','GG1 Only Drive Team Members in the Alliance Station|GG2 Robot must attend every Match|GG3 Robots on the Field ready to play|GG4 Hands out of the Field|GG5 Replays are rare|GG6 Disqualifications|GG7 Time-outs|GG8 Keep your Robot in one piece|GG9 No hooking or entangling Field Elements|GG10 Red Alliance places last|GG11 Controllers stay connected|GG12 No human interaction in Autonomous|GG13 Rules still apply in Autonomous|GG14 Don’t destroy other Robots|GG15 Offensive Robots get the benefit of the doubt|GG16 Can’t force an opponent into a penalty|GG17 No holding past a 3-count|GG18 Scoring Objects can’t get around the rules'],
+['Scoring','SC1 Scores checked after the Match settles|SC2 Placed Scoring Objects|SC3 Scored Pin halves|SC4 Toggle set to a color|SC5 Yellow Pin ownership|SC6 Ending in the Midfield|SC7 Autonomous Bonus|SC8 Autonomous Win Point'],
+['Specific game','SG1 Starting a Match|SG2 Horizontal expansion limit|SG3 Vertical expansion limit|SG4 Keep Scoring Objects in the Field|SG5 Preloads|SG6 Possess at most one Pin and one Cup|SG7 The Autonomous Line|SG8 Midfield and Autonomous Line in Autonomous|SG9 Alliance Goals are protected|SG10 Don’t remove Placed objects from neutral or opposing Goals|SG11 Introducing Match Loads|SG12 Endgame restrictions|SG13 Load Zone protections'],
+['Robot Skills','RSC1 Standard rules apply|RSC2 How Skills Matches differ|RSC3 Scoring Skills Matches|RSC4 Skills Field setup|RSC5 Skills Stop Time'],
+['Robot','R1 One Robot per Team|R2 Must pass inspection|R3 18-inch starting size|R4 License plates|R5 Let go of Scoring Objects after the Match|R6 One V5 Brain|R7 Power button or battery reachable|R8 Current firmware|R9 Competition template programming|R10 88 W motor limit|R11 Subsystem 2 motor limit|R12 VEX batteries only|R13 VEXnet only|R14 Radio placement|R15 One or two Controllers|R16 Built from the VEX V5 system|R17 New VEX parts are legal|R18 Prohibited items|R19 Allowed non-VEX items|R20 Custom V5 Smart Cables|R21 Tape for limited uses|R22 Non-VEX fasteners|R23 Non-functional decorations|R24 Custom plastic limits|R25 Pneumatics limits|R26 Pressure gauge required|R27 Modifying non-electrical parts|R28 No modifying electronics or pneumatics'],
+['Tournament','T1 Head Referee has final say and keeps the anomaly log|T2 Head Referee qualifications|T3 Drive Team appeals|T4 Event Partner authority|T5 Field and object variance|T6 Field repairs and modifications|T7 Fields consistent at an event|T8 Field control systems|T9 Field Perimeter types|T10 Qualification schedule|T11 Minimum Qualification Matches|T12 Qualification rankings|T13 Ranking tiebreakers|T14 Number of Elimination Alliances|T15 Student at Alliance Selection|T16 Alliance invitations|T17 Elimination bracket|T18 Best-of-1 and best-of-3|T19 Ties and rematches in Eliminations|T20 Skills Match schedule|T21 Skills Field requirements|T22 Event Skills rankings|T23 Global Skills rankings|T24 League Skills']];
+const VUR=[
+['VEX U game','VUG1 Robot starting sizes|VUG2 Robot placement order|VUG3 Electronics moving at Match start|VUG4 Loading in Autonomous and Driver|VUG5 Autonomous scoring changes|VUG6 Autonomous Win Point'],
+['VEX U skills','VURS1 Skills Match Loads|VURS2 Both Robots in Skills|VURS3 Skills starting positions'],
+['VEX U tournament','VUT1 1v1 with two Robots per Team|VUT2 Qualifications in 1v1|VUT3 No Alliance Selection|VUT4 30-second Autonomous|VUT5 90-second Driver Controlled|VUT6 Elimination counts and byes'],
+['VEX U robot','VUR1 Two Robots: sizes and materials|VUR2 Allowed VEX products|VUR3 Fabrication processes|VUR4 Raw Stock forms|VUR5 What isn’t Raw Stock|VUR6 Prohibited materials|VUR7 Fabricated Parts are Team-made|VUR8 Springs|VUR9 Fasteners|VUR10 V5 Brain and Radio|VUR11 Motor limits|VUR12 Sensors and processors|VUR13 No commercial electromechanical assemblies|VUR14 Pneumatics|VUR15 Bearings']];
+const IQR=[
+['Safety','S1 Stay safe; don’t damage the Field|S2 Students accompanied by an adult|S3 Release form required'],
+['General','G1 Treat everyone with respect|G2 Student-centered program|G3 Use common sense|G4 Work matches the Students’ skill level|G5 One Team per Student|G6 Accidental vs. willful Robot violations'],
+['General game','GG1 Drivers drive; stay in the Driver Station|GG2 Robot must attend every Match|GG3 Robots on the Field ready to play|GG4 Hands out of the Field|GG5 Replays are rare|GG6 Disqualifications|GG7 No time-outs|GG8 Keep your Robot together|GG9 Don’t damage the Field|GG10 Handling the Robot mid-Match|GG11 Switching Controllers mid-Match|GG12 No early start or moving after the end|GG13 Ending a Match early|GG14 Appealing a ruling'],
+['Scoring','SC1 Scores checked after the Match|SC2 Head Referee checks visually|SC3 Floor Goal|SC4 L1, L2 and L3 Goals|SC5 L4 Goal'],
+['Specific game','SG1 Starting a Match|SG2 Horizontal expansion limit|SG3 Vertical expansion is unlimited|SG4 Keep Scoring Objects in the Field|SG5 One yellow Bean Bag Preload|SG6 Possess at most one Bean Bag|SG7 Using the Load Zone'],
+['Robot Skills','RSC1 Standard rules mostly apply|RSC2 Scoring Skills Matches|RSC3 Skills Robot and Field setup|RSC4 Loader and Driver differences|RSC5 Handling Robots in Autonomous Coding|RSC6 Starting an Autonomous Coding Match|RSC7 No humans in Autonomous Coding|RSC8 Skills Stop Time'],
+['Robot','R1 One Robot per Team|R2 Must pass inspection|R3 Size limit|R4 License plates|R5 Let go after the Match|R6 One Brain|R7 Power button reachable|R8 Firmware|R9 Motor limit|R10 Batteries|R11 One Controller per Robot|R12 Built from VEX IQ|R13 Prohibited items|R14 Allowed non-VEX IQ items|R15 Decorations|R16 Pneumatics|R17 Modifying parts'],
+['Tournament','T1 Head Referee has final say and keeps the anomaly log|T2 Head Referee qualifications|T3 Appeals|T4 Event Partner authority|T5 Minor Field variance|T6 Field repairs and modifications|T7 Fields consistent at an event|T8 Qualification schedule|T9 Qualification Matches per Team|T10 Ranking by average score|T11 Ranking tiebreakers|T12 Alliance formation|T13 Teams in Finals|T14 Finals schedule|T15 Skills Match schedule|T16 Skills Field modifications|T17 Event Skills rankings|T18 Global Skills rankings|T19 League Skills']];
+const mk=a=>a.flatMap(([sec,s])=>s.split('|').map(x=>{const i=x.indexOf(' ');return{code:x.slice(0,i),label:x.slice(i+1),sec}}));
+const V5Q='https://events.vex.com/V5RC/2026-2027/QA/tag/',IQQ='https://events.vex.com/VIQRC/2026-2027/QA/tag/';
+const PROG={
+ V5RC:{label:'V5RC',long:'VEX V5 Robotics Competition',game:'Override',red:2,blue:2,auton:true,manual:'https://www.vexrobotics.com/override-manual',qa:V5Q,rules:mk(V5R),picks:['SG6','SG2','SG9','SG10','SG11','SG13','GG17','GG4']},
+ VURC:{label:'VEX U',long:'VEX U Robotics Competition',game:'Override',red:1,blue:1,auton:true,manual:'https://www.vexrobotics.com/override-manual',qa:V5Q,rules:mk(V5R).concat(mk(VUR)),picks:['SG6','SG2','SG9','SG10','SG13','VUG4','GG17','GG4']},
+ VIQRC:{label:'VIQRC',long:'VEX IQ Robotics Competition',game:'Level Up',red:2,blue:0,auton:false,manual:'https://www.vexrobotics.com/level-up-manual',qa:IQQ,rules:mk(IQR),picks:['SG2','SG6','SG7','GG4','GG10','GG12','GG8','SG4']}};
+const rulesFor=ev=>PROG[ev.program].rules.concat(ev.customRules.map(r=>({code:r.code,label:r.label||'Added rule',sec:'Added for this event',custom:true})));
+const ruleMap=ev=>new Map(rulesFor(ev).map(r=>[r.code,r]));
+const OUTS=['minor','major','disabled','note'],OL={minor:'Minor',major:'Major',disabled:'Disabled',note:'Note'};
+const WL={shared:'Shared',mine:'Only you',device:'This device'};
+
+/* ---------- storage ---------- */
+const LS={ok:true,get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){this.ok=false;return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.ok=false}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const prefs=LS.get('rl.prefs',{})||{};
+const savePrefs=()=>LS.set('rl.prefs',prefs);
+let devEvents=LS.get('rl.events',null);
+const devEntries={};
+const S={events:new Map(),entries:[],cur:prefs.cur||null,tab:prefs.tab||'matches',open:{match:null,team:null},mq:'',mround:'all',tq:'',tsort:'num',rq:'',f:{out:'all',rule:'',ref:'',q:'',sort:'new'},db:null,uid:null,dl:null,canWrite:true,pending:0,entPending:false,entStale:false,entErr:'',offline:typeof navigator!=='undefined'&&navigator.onLine===false,waitCloud:!!(prefs.cur&&prefs.curWhere&&prefs.curWhere!=='device'),boundKey:null,unsub:null,answered:{shared:false,mine:false}};
+const cloudEv={shared:new Map(),mine:new Map()};
+
+function cleanEvent(d,id,where){d=d||{};const T=s=>str(s,10).toUpperCase().replace(/\s+/g,'');
+ return{id,where,kind:'event',name:str(d.name,80)||'Untitled event',program:PROG[d.program]?d.program:'V5RC',sku:str(d.sku,40),date:str(d.date,10),sample:!!d.sample,
+  teams:arr(d.teams).map(t=>({num:T(t&&t.num),name:str(t&&t.name,60)})).filter(t=>t.num),
+  matches:arr(d.matches).map(m=>({id:okSeg(m&&m.id)?m.id:uid(),label:str(m&&m.label,20).toUpperCase(),time:str(m&&m.time,12),red:arr(m&&m.red).map(T).filter(Boolean).slice(0,3),blue:arr(m&&m.blue).map(T).filter(Boolean).slice(0,3)})).filter(m=>m.label),
+  customRules:arr(d.customRules).map(r=>({code:str(r&&r.code,12).toUpperCase(),label:str(r&&r.label,80)})).filter(r=>r.code),created:num(d.created),updated:num(d.updated)}}
+function cleanEntry(d,id){if(!d||!okSeg(id))return null;
+ if(d.kind==='auton')return{id,kind:'auton',matchId:str(d.matchId,80),match:str(d.match,20),bonus:['red','blue','tie'].includes(d.bonus)?d.bonus:'',awpRed:!!d.awpRed,awpBlue:!!d.awpBlue,at:num(d.at)};
+ const team=str(d.team,10).toUpperCase();if(!team)return null;
+ return{id,kind:'entry',team,match:str(d.match,20).toUpperCase(),outcome:OUTS.includes(d.outcome)?d.outcome:'note',affecting:!!d.affecting,rules:arr(d.rules).map(r=>str(r,12).toUpperCase()).filter(Boolean).slice(0,8),notes:str(d.notes,600),ref:str(d.ref,40),at:num(d.at)}}
+const evBody=ev=>({kind:'event',name:ev.name,program:ev.program,sku:ev.sku,date:ev.date,sample:ev.sample,teams:ev.teams,matches:ev.matches,customRules:ev.customRules,created:ev.created,updated:ev.updated});
+const entBody=e=>{const b={...e};delete b.id;return b};
+const evDoc=ev=>ev.where==='shared'?'events/'+ev.id:'data/users/'+S.uid+'/'+ev.id;
+const entColl=ev=>evDoc(ev)+'/entries';
+const writable=ev=>!!ev&&(ev.where==='device'||(!!S.db&&S.canWrite));
+function devLoad(id){if(!devEntries[id])devEntries[id]=arr(LS.get('rl.ent.'+id,[])).map(e=>cleanEntry(e,e&&e.id)).filter(Boolean);return devEntries[id]}
+const devSave=id=>LS.set('rl.ent.'+id,(devEntries[id]||[]).map(e=>({...e})));
+const devSaveEvents=()=>LS.set('rl.events',devEvents);
+
+function seedSample(){
+ const at=(h,mi)=>{const x=new Date();x.setHours(h,mi,30,0);return x.getTime()};
+ const sch=[['Q1','9:00 AM','1121A 4512X','3310C 7110Z'],['Q2','9:06 AM','5225A 9123B','6390D 11447S'],['Q3','9:12 AM','8059K 1121B','10201A 12039E'],['Q4','9:18 AM','3310C 6390D','1121A 8059K'],['Q5','9:24 AM','7110Z 10201A','5225A 1121B'],['Q6','9:30 AM','11447S 12039E','4512X 9123B'],['Q7','9:36 AM','1121A 9123B','7110Z 6390D'],['Q8','9:42 AM','4512X 10201A','8059K 11447S']];
+ const names={'1121A':'Gear Grinders','3310C':'Torque Theory','4512X':'Night Owls','5225A':'Hex Nuts','7110Z':'Zip Tie Brigade','8059K':'Kinetic','10201A':'Rookie Rush','12039E':'Eastside Bots'};
+ const teams='1121A 1121B 3310C 4512X 5225A 6390D 7110Z 8059K 9123B 10201A 11447S 12039E'.split(' ').map(n=>({num:n,name:names[n]||''}));
+ devEvents={sample1:{kind:'event',name:'Sample scrimmage',program:'V5RC',sku:'',date:today(),sample:true,teams,matches:sch.map(([l,t,r,b],i)=>({id:'sm'+(i+1),label:l,time:t,red:r.split(' '),blue:b.split(' ')})),customRules:[],created:Date.now(),updated:Date.now()}};
+ const E=(id,team,match,outcome,rules,notes,h,mi,ref,aff)=>({id,kind:'entry',team,match,outcome,rules,notes,ref,at:at(h,mi),affecting:!!aff});
+ devEntries.sample1=[E('se1','4512X','Q1','minor',['SG6'],'Held two Pins while crossing the Midfield, about 2 seconds',9,2,'Sam'),E('se2','7110Z','Q1','note',[],'Helped 3310C reset a Pin after the Match. Good sportsmanship.',9,4,'Sam'),E('se3','9123B','Q2','minor',['SG2'],'Briefly over the horizontal limit while scoring',9,8,'Priya'),E('se4','3310C','Q4','major',['SG10'],'Pulled a Placed Pin off the neutral Goal; changed the result',9,20,'Sam',true),E('se5','8059K','Q4','minor',['GG17'],'Pinned 1121A on the wall, released at 4',9,21,'Sam'),E('se6','4512X','Q6','minor',['SG6'],'Two Cups while driving to the Load Zone',9,32,'Priya'),E('se7','12039E','Q6','disabled',['S1'],'Battery came loose and sparked. Disabled for safety.',9,33,'Sam'),E('se8','9123B','Q7','minor',['SG2'],'Arm past the limit for a moment',9,38,'Priya'),E('se9','4512X','Q8','minor',['SG6'],'Third possession warning today',9,44,'Sam'),
+  {id:'auton-sm1',kind:'auton',matchId:'sm1',match:'Q1',bonus:'red',awpRed:true,awpBlue:false,at:at(9,2)},{id:'auton-sm4',kind:'auton',matchId:'sm4',match:'Q4',bonus:'blue',awpRed:false,awpBlue:false,at:at(9,20)}];
+ devSaveEvents();devSave('sample1');prefs.seeded=true;S.cur='sample1';prefs.cur='sample1';prefs.curWhere='device';S.open.match='sm6';savePrefs()}
+if(!devEvents||typeof devEvents!=='object'){devEvents={};if(!prefs.seeded)seedSample()}
+
+function rebuildEvents(){const m=new Map();for(const[id,d]of Object.entries(devEvents))m.set(id,cleanEvent(d,id,'device'));for(const w of['mine','shared'])for(const[id,e]of cloudEv[w])m.set(id,e);S.events=m;
+ if(!m.has(S.cur)&&!S.waitCloud){const f=[...m.values()][0];S.cur=f?f.id:null;prefs.cur=S.cur;prefs.curWhere=f?f.where:null;savePrefs()}
+ ensureBound()}
+const curEv=()=>S.events.get(S.cur)||null;
+function ensureBound(){const ev=curEv();const k=ev?ev.where+':'+ev.id:'';if(k===S.boundKey)return;S.boundKey=k;bindEntries(ev)}
+function bindEntries(ev){if(S.unsub){S.unsub();S.unsub=null}S.entStale=false;S.entErr='';S.entPending=false;
+ if(!ev){S.entries=[];return}
+ if(ev.where==='device'){S.entries=devLoad(ev.id);return}
+ S.entries=[];if(!S.db)return;const id=ev.id;
+ const t=setTimeout(()=>{S.entStale=true;renderSync()},10000);
+ S.unsub=S.db.collection(entColl(ev)).onSnapshot(snap=>{if(S.cur!==id)return;S.entries=snap.docs.map(d=>cleanEntry(d.data(),d.id)).filter(Boolean);S.entPending=snap.metadata.hasPendingWrites;if(!snap.metadata.fromCache){clearTimeout(t);S.entStale=false}renderAll()},err=>{clearTimeout(t);S.entErr=(err&&err.code)||'unavailable';renderAll()})}
+
+const wq=new Map();
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+function dbWrite(path,fn){S.pending++;renderSync();
+ const run=async()=>{const ref=S.db.doc(path);try{await fn(ref)}catch(e){const c=e&&e.code;if(c==='unavailable'||c==='resource_exhausted'){await pause(600+Math.random()*900);try{await fn(ref)}catch(e2){fail(e2)}}else fail(e)}};
+ const p=(wq.get(path)||Promise.resolve()).then(run).finally(()=>{S.pending--;if(wq.get(path)===p)wq.delete(path);renderSync()});
+ wq.set(path,p);return p}
+function fail(e){const c=e&&e.code;if(c==='invalid_argument'){S.canWrite=false;toast('This page is view-only for you, so that change wasn’t saved')}else if(c==='quota_exceeded')toast('Storage is full. Export and delete an old event.');else toast('Couldn’t save. Check your connection and try again.');renderAll()}
+
+function persistEvent(ev){ev.updated=Date.now();if(!ev.created)ev.created=ev.updated;
+ if(ev.where==='device'){devEvents[ev.id]=evBody(ev);devSaveEvents()}else{cloudEv[ev.where].set(ev.id,ev);const b=evBody(ev);dbWrite(evDoc(ev),r=>r.set(b))}
+ rebuildEvents();renderAll()}
+function persistEntry(e,quiet){const ev=curEv();if(!ev)return;const i=S.entries.findIndex(x=>x.id===e.id);if(i>=0)S.entries[i]=e;else S.entries.push(e);
+ if(ev.where==='device'){devEntries[ev.id]=S.entries;devSave(ev.id)}else{const b=entBody(e);dbWrite(entColl(ev)+'/'+e.id,r=>r.set(b))}
+ if(!quiet)renderAll()}
+function removeEntry(id){const ev=curEv();if(!ev)return;S.entries=S.entries.filter(x=>x.id!==id);
+ if(ev.where==='device'){devEntries[ev.id]=S.entries;devSave(ev.id)}else dbWrite(entColl(ev)+'/'+id,r=>r.delete());renderAll()}
+async function clearEntries(ev){if(ev.where==='device'){devEntries[ev.id]=[];devSave(ev.id);if(S.cur===ev.id)S.entries=devEntries[ev.id];renderAll();return}
+ let ids;try{ids=(await S.db.collection(entColl(ev)).get()).docs.map(d=>d.id)}catch(e){ids=S.cur===ev.id?S.entries.map(x=>x.id):[]}
+ for(const id of ids)await dbWrite(entColl(ev)+'/'+id,r=>r.delete())}
+async function deleteEvent(ev){await clearEntries(ev);
+ if(ev.where==='device'){delete devEvents[ev.id];devSaveEvents();LS.del('rl.ent.'+ev.id);delete devEntries[ev.id]}else{cloudEv[ev.where].delete(ev.id);await dbWrite(evDoc(ev),r=>r.delete())}
+ if(S.cur===ev.id){S.cur=null;S.waitCloud=false}rebuildEvents();renderAll();toast('Event deleted')}
+
+/* ---------- derived data ---------- */
+const viol=()=>S.entries.filter(e=>e.kind==='entry');
+const autonFor=m=>S.entries.find(e=>e.kind==='auton'&&e.matchId===m.id);
+const isTeam=(t,prog)=>/^\d{1,5}[A-Z]{0,2}$/i.test(t)||(prog==='VURC'&&/^[A-Z]{2,5}\d{0,2}$/i.test(t));
+const tkey=t=>{const m=/^(\d+)(.*)$/.exec(t);return m?[0,+m[1],m[2]]:[1,0,t]};
+const tsort=(a,b)=>{const x=tkey(a),y=tkey(b);return x[0]-y[0]||x[1]-y[1]||String(x[2]).localeCompare(String(y[2]))};
+function allTeams(ev){const s=new Set(ev.teams.map(t=>t.num));for(const m of ev.matches)for(const t of m.red.concat(m.blue))s.add(t);for(const e of viol())s.add(e.team);return[...s].filter(Boolean).sort(tsort)}
+const teamName=(ev,t)=>(ev.teams.find(x=>x.num===t)||{}).name||'';
+const roundOf=l=>/^Q\d/i.test(l)?'Q':/^P(R)?\d/i.test(l)?'P':/^(R\d+|QF|SF|F|E)/i.test(l)?'E':'O';
+function stats(){const m=new Map();for(const e of viol()){let s=m.get(e.team);if(!s)m.set(e.team,s={minor:0,major:0,disabled:0,note:0,list:[]});s[e.outcome]++;s.list.push(e)}return m}
+function warns(list){const out=[],per={},mt={};
+ for(const e of list){if(e.outcome!=='minor')continue;for(const r of e.rules){const k=r+'\u0001'+(e.match||'one match');per[k]=(per[k]||0)+1;(mt[r]||(mt[r]=new Set())).add(e.match||e.id)}}
+ for(const k in per)if(per[k]>=2){const[r,mm]=k.split('\u0001');out.push(`${per[k]} Minors of &lt;${esc(r)}&gt; in ${esc(mm)}`)}
+ for(const r in mt)if(mt[r].size>=3)out.push(`Minors of &lt;${esc(r)}&gt; in ${mt[r].size} matches`);return out}
+const usedRules=()=>[...new Set(viol().flatMap(e=>e.rules))].sort();
+const refs=()=>[...new Set(viol().map(e=>e.ref).filter(Boolean))].sort();
+const fmtT=at=>at?new Date(at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
+const fmtD=d=>{if(!d)return'No date';const x=new Date(d+'T12:00:00');return isNaN(x)?d:x.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})};
+
+/* ---------- markup ---------- */
+const WARN_ICON='<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 15 14H1z" fill="currentColor" opacity=".2"/><path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 6v4" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="12" r=".9" fill="currentColor"/></svg>';
+function pips(s){if(!s)return'';let h='';for(let i=0;i<Math.min(s.minor,3);i++)h+='<i class="pip"></i>';if(s.minor>3)h+=`<em>+${s.minor-3}</em>`;for(let i=0;i<Math.min(s.major,2);i++)h+='<i class="pip mj"></i>';if(s.major>2)h+=`<em>+${s.major-2}</em>`;if(s.disabled)h+='<i class="pip ds"></i>';
+ const t=[s.minor&&s.minor+' minor',s.major&&s.major+' major',s.disabled&&s.disabled+' disabled'].filter(Boolean).join(', ');return h?`<span class="pips" title="${t}" aria-label="${t}">${h}</span>`:''}
+const sumText=s=>s&&(s.minor||s.major||s.disabled)?[`${s.minor} Minor`,`${s.major} Major`].concat(s.disabled?[`${s.disabled} Disabled`]:[]).join(' · '):'Clean so far';
+const warnBox=w=>w.length?`<div class="warn">${WARN_ICON}<div>${w.map(x=>`<div>${x}</div>`).join('')}<small>Check that rule’s violation notes: repeated Minors can become a Major.</small></div></div>`:'';
+const rulesHtml=r=>r.map(c=>`<b class="rc">&lt;${esc(c)}&gt;</b>`).join(' ');
+const entRow=e=>`<button class="ent" data-act="edit" data-id="${esc(e.id)}"><span class="l1"><span class="tag t-${e.outcome}">${OL[e.outcome]}</span>${e.affecting?'<span class="aff">Match affecting</span>':''}${rulesHtml(e.rules)}</span>${e.notes?`<span class="nt">${esc(e.notes)}</span>`:''}<span class="meta">${[esc(e.match),fmtT(e.at),esc(e.ref)].filter(Boolean).join(' · ')}</span></button>`;
+const quick=(t,m)=>`<div class="quick">${OUTS.map(o=>`<button class="q-${o}" data-act="new" data-t="${esc(t)}" data-m="${esc(m)}" data-o="${o}">${o==='disabled'?'Disable':OL[o]}</button>`).join('')}</div>`;
+const emptyBox=(h,p,btn,tab)=>`<div class="empty"><h2>${h}</h2><p>${p}</p>${btn?`<button class="primary" data-act="tab" data-tab="${tab}">${btn}</button>`:''}</div>`;
+
+const V={};
+V.matches={
+ shell:ev=>`${ev.sample?'<p class="sample">Example event with sample entries. Start your own from the event menu at the top.</p>':''}<div class="tools"><div class="seg" role="group" aria-label="Round">${[['all','All'],['Q','Quals'],['E','Elims'],['P','Practice']].map(([k,l])=>`<button data-act="mround" data-k="${k}" aria-pressed="${S.mround===k}">${l}</button>`).join('')}</div><input id="mq" type="search" placeholder="Find a team or match" value="${esc(S.mq)}" aria-label="Find a team or match" autocomplete="off"></div><div id="body"></div>`,
+ body:ev=>{if(!ev.matches.length)return emptyBox('No schedule yet','Paste your match list in the Event tab, or log by team with + Entry. A schedule is optional.','Add a schedule','event');
+  const q=S.mq.trim().toUpperCase(),ST=stats();
+  const ms=ev.matches.filter(m=>(S.mround==='all'||roundOf(m.label)===S.mround)&&(!q||m.label.startsWith(q)||m.red.concat(m.blue).some(t=>t.includes(q))));
+  return ms.length?ms.map(m=>matchRow(ev,m,ST)).join(''):`<p class="none">No match fits “${esc(S.mq)}”.</p>`}};
+function matchRow(ev,m,ST){const P=PROG[ev.program],open=S.open.match===m.id,n=viol().filter(e=>e.match===m.label).length;
+ const ch=ts=>ts.map(t=>`<span class="tchip"><b>${esc(t)}</b>${pips(ST.get(t))}</span>`).join('')||'<span class="tbd">TBD</span>';
+ const al=P.blue?`<span class="all red">${ch(m.red)}</span><span class="all blue">${ch(m.blue)}</span>`:`<span class="all tw">${ch(m.red)}</span>`;
+ return `<article class="mrow${open?' open':''}" id="m-${esc(m.id)}"><button class="mhead" data-act="openMatch" data-id="${esc(m.id)}" aria-expanded="${open}"><span class="mlab"><b>${esc(m.label)}</b>${m.time?`<small>${esc(m.time)}</small>`:''}${n?`<small class="n">${n} logged</small>`:''}</span>${al}</button>${open?matchDetail(ev,m,ST):''}</article>`}
+function matchDetail(ev,m,ST){const P=PROG[ev.program];
+ const blocks=m.red.map(t=>[t,P.blue?'red':'tw']).concat(m.blue.map(t=>[t,'blue'])).map(([t,side])=>{const s=ST.get(t),here=(s?s.list:[]).filter(e=>e.match===m.label).sort((a,b)=>a.at-b.at);
+  return `<section class="tb ${side}"><div class="tbh"><button class="tlink" data-act="gotoTeam" data-t="${esc(t)}"><b>${esc(t)}</b><span>${esc(teamName(ev,t))}</span></button><span class="tsum">${sumText(s)}</span></div>${warnBox(warns(s?s.list:[]))}${here.map(entRow).join('')}${quick(t,m.label)}</section>`}).join('');
+ return `<div class="mdet">${blocks||'<p class="none">No teams listed for this match.</p>'}${P.auton?autonBlock(m):''}</div>`}
+function autonBlock(m){const a=autonFor(m)||{},b=a.bonus||'';
+ return `<section class="tb auton"><div class="tbh"><b class="h">Autonomous</b></div><div class="lbl">Bonus</div><div class="seg wide" role="group" aria-label="Autonomous Bonus">${[['red','Red'],['tie','Tie'],['blue','Blue'],['','None']].map(([k,l])=>`<button class="b-${k||'none'}" data-act="bonus" data-id="${esc(m.id)}" data-k="${k}" aria-pressed="${!!a.id&&b===k}">${l}</button>`).join('')}</div><div class="lbl">Win Point</div><div class="seg wide" role="group" aria-label="Autonomous Win Point">${['red','blue'].map(sd=>`<button class="b-${sd}" data-act="awp" data-id="${esc(m.id)}" data-k="${sd}" aria-pressed="${!!a[sd==='red'?'awpRed':'awpBlue']}">${sd==='red'?'Red':'Blue'} AWP</button>`).join('')}</div><p class="hint">For your records only. Scores still go into Tournament Manager.</p></section>`}
+
+V.teams={
+ shell:()=>`<div class="tools"><input id="tq" type="search" placeholder="Find a team" value="${esc(S.tq)}" aria-label="Find a team" autocomplete="off"><label class="inl">Sort<select id="tsort"><option value="num">Team number</option><option value="most">Most flagged</option></select></label></div><div id="body"></div>`,
+ mount:()=>{$('#tsort').value=S.tsort},
+ body:ev=>{const ST=stats(),q=S.tq.trim().toUpperCase();let ts=allTeams(ev);if(q)ts=ts.filter(t=>t.includes(q)||teamName(ev,t).toUpperCase().includes(q));
+  const sc=s=>s?s.major*3+s.disabled*3+s.minor:0;if(S.tsort==='most')ts.sort((a,b)=>sc(ST.get(b))-sc(ST.get(a))||tsort(a,b));
+  if(!ts.length)return q?`<p class="none">No team fits “${esc(S.tq)}”.</p>`:emptyBox('No teams yet','Paste the team list in the Event tab, or type a new team number when you log an entry.','Add teams','event');
+  return ts.map(t=>teamRow(ev,t,ST.get(t))).join('')}};
+function teamRow(ev,t,s){const open=S.open.team===t,w=warns(s?s.list:[]);
+ const c=s?[s.minor&&`<span class="tag t-minor">${s.minor} Minor</span>`,s.major&&`<span class="tag t-major">${s.major} Major</span>`,s.disabled&&`<span class="tag t-disabled">${s.disabled} Disabled</span>`,s.note&&`<span class="tag t-note">${s.note} Note${s.note>1?'s':''}</span>`].filter(Boolean).join(''):'';
+ let det='';if(open){const ms=ev.matches.filter(m=>m.red.includes(t)||m.blue.includes(t)),list=(s?s.list:[]).slice().sort((a,b)=>b.at-a.at);
+  det=`<div class="tdet">${warnBox(w)}${list.length?list.map(entRow).join(''):'<p class="none">Nothing logged for this team.</p>'}${ms.length?`<div class="lbl">Matches</div><div class="chips">${ms.map(m=>`<button class="chip" data-act="gotoMatch" data-id="${esc(m.id)}">${esc(m.label)}${m.time?` <small>${esc(m.time)}</small>`:''}</button>`).join('')}</div>`:''}${quick(t,'')}</div>`}
+ return `<article class="trow${open?' open':''}" id="t-${esc(t)}"><button class="thead" data-act="openTeam" data-t="${esc(t)}" aria-expanded="${open}"><span class="tn"><b>${esc(t)}</b><small>${esc(teamName(ev,t))}</small></span><span class="cts">${c}${w.length?'<span class="wdot" title="Repeated Minors">!</span>':''}</span></button>${det}</article>`}
+
+V.log={
+ shell:()=>`<div class="tools"><div class="seg" role="group" aria-label="Outcome">${[['all','All']].concat(OUTS.map(o=>[o,OL[o]])).map(([k,l])=>`<button data-act="fout" data-k="${k}" aria-pressed="${S.f.out===k}">${l}</button>`).join('')}</div></div>
+  <div class="tools"><input id="fq" type="search" placeholder="Search teams, matches, notes" value="${esc(S.f.q)}" aria-label="Search the log" autocomplete="off"><select id="frule" aria-label="Rule"></select><select id="fref" aria-label="Referee"></select><select id="fsort" aria-label="Sort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="team">By team</option><option value="match">By match</option></select></div>
+  <div id="body"></div><div class="actions"><button data-act="export" data-k="csv">Export CSV</button><button data-act="export" data-k="json">Export backup</button><button data-act="import">Import backup</button></div>`,
+ mount:()=>{$('#fsort').value=S.f.sort},
+ body:ev=>{if(!viol().length)return emptyBox('The log is empty','Entries show up here as you log them from a match, a team, or + Entry.');
+  const f=S.f,q=f.q.trim().toLowerCase();let L=viol();
+  if(f.out!=='all')L=L.filter(e=>e.outcome===f.out);if(f.rule)L=L.filter(e=>e.rules.includes(f.rule));if(f.ref)L=L.filter(e=>e.ref===f.ref);
+  if(q)L=L.filter(e=>(e.team+' '+e.match+' '+e.notes+' '+e.rules.join(' ')+' '+e.ref).toLowerCase().includes(q));
+  const mi=new Map(ev.matches.map((m,i)=>[m.label,i])),pos=e=>mi.has(e.match)?mi.get(e.match):1e9;
+  L.sort(f.sort==='old'?(a,b)=>a.at-b.at:f.sort==='team'?(a,b)=>tsort(a.team,b.team)||a.at-b.at:f.sort==='match'?(a,b)=>pos(a)-pos(b)||a.at-b.at:(a,b)=>b.at-a.at);
+  const c={minor:0,major:0,disabled:0,note:0};L.forEach(e=>c[e.outcome]++);
+  return `<p class="sum"><b>${L.length}</b> ${L.length===1?'entry':'entries'} · ${c.minor} Minor · ${c.major} Major · ${c.disabled} Disabled · ${c.note} Note${c.note===1?'':'s'}</p><div class="log">${L.map(e=>`<button class="lrow" data-act="edit" data-id="${esc(e.id)}"><span class="lt">${fmtT(e.at)}</span><span class="lm">${esc(e.match)||'—'}</span><span class="lteam">${esc(e.team)}</span><span><span class="tag t-${e.outcome}">${OL[e.outcome]}</span></span><span class="lx">${rulesHtml(e.rules)}${e.affecting?'<span class="aff">Match affecting</span>':''}${e.notes?`<span class="nt">${esc(e.notes)}</span>`:''}${e.ref?`<span class="meta">${esc(e.ref)}</span>`:''}</span></button>`).join('')||'<p class="none">Nothing fits these filters.</p>'}</div>`},
+ after:()=>{for(const[id,vals,all,key]of[['frule',usedRules(),'All rules','rule'],['fref',refs(),'All referees','ref']]){const s=$('#'+id);if(!s||document.activeElement===s)continue;s.innerHTML=`<option value="">${all}</option>`+vals.map(x=>`<option value="${esc(x)}">${id==='frule'?'&lt;'+esc(x)+'&gt;':esc(x)}</option>`).join('');if(!vals.includes(S.f[key]))S.f[key]='';s.value=S.f[key]}}};
+
+V.rules={
+ shell:ev=>{const P=PROG[ev.program];return `<p class="pinfo"><b>${P.long}</b> · ${P.game}. Short labels to help you find a rule. The <a href="${P.manual}" target="_blank" rel="noopener">game manual</a> and the <a href="${P.qa.replace('tag/','')}" target="_blank" rel="noopener">official Q&amp;A</a> govern.</p><div class="tools"><input id="rq" type="search" placeholder="Search: SG6, holding, expansion" value="${esc(S.rq)}" aria-label="Search rules" autocomplete="off"></div><div id="body"></div>
+  <section class="card" style="margin-top:20px"><h2>Add a rule code</h2><p class="hint">Manuals update during the season. Add a new or renumbered rule so it shows up in the picker for this event.</p><form id="ruleForm" class="row"><label>Code<input id="rcode" placeholder="SG14" maxlength="12" required style="width:8em"></label><label class="grow">Short label<input id="rlabel" placeholder="What it covers" maxlength="80"></label><button class="primary">Add rule</button></form></section>`},
+ body:ev=>{const P=PROG[ev.program],q=S.rq.trim().toLowerCase().replace(/[<>]/g,''),cnt={};viol().forEach(e=>e.rules.forEach(r=>cnt[r]=(cnt[r]||0)+1));
+  const R=rulesFor(ev).filter(r=>!q||r.code.toLowerCase().startsWith(q)||r.label.toLowerCase().includes(q));if(!R.length)return`<p class="none">No rule fits “${esc(S.rq)}”.</p>`;
+  return [...new Set(R.map(r=>r.sec))].map(s=>`<section class="rsec"><h3>${esc(s)}</h3>${R.filter(r=>r.sec===s).map(r=>`<div class="rrow"><b class="rc">&lt;${esc(r.code)}&gt;</b><span>${esc(r.label)}</span>${cnt[r.code]?`<button class="cnt" data-act="ruleLog" data-k="${esc(r.code)}" title="Show these in the log">${cnt[r.code]} logged</button>`:'<span></span>'}${r.custom?`<button class="x" data-act="delRule" data-k="${esc(r.code)}" aria-label="Remove ${esc(r.code)}">×</button>`:`<a href="${P.qa}${encodeURIComponent(r.code)}" target="_blank" rel="noopener">Q&amp;A</a>`}</div>`).join('')}</section>`).join('')}};
+
+function whereText(ev){return ev.where==='device'?(LS.ok?'Kept in this browser on this device only. Export a backup before you clear the browser or switch devices.':'This browser isn’t keeping data. Export a backup before you close the page.'):ev.where==='mine'?'Saved to your account. Only you can see it, on any device where you open this page.':'Shared: anyone who can open this page sees it, and people with edit access can log entries. Every referee’s entries sync live.'}
+V.event={
+ shell:ev=>{const P=PROG[ev.program],ex=P.blue?(P.red===2?'Q1  9:00 AM  1121A 4512X  3310C 7110Z':'Q1  9:00 AM  UCF1  BLRS'):'Q1  9:00 AM  1121A 4512X';
+  return `<section class="card"><h2>Event</h2><form id="evForm" class="grid2"><label>Name<input id="eName" value="${esc(ev.name)}" maxlength="80" required></label><label>Program<select id="eProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===ev.program?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="eDate" type="date" value="${esc(ev.date)}"></label><label>RobotEvents SKU <span class="opt">optional</span><input id="eSku" value="${esc(ev.sku)}" maxlength="40" placeholder="Leave blank for scrimmages"></label><div class="actions"><button class="primary">Save event</button></div></form><p class="hint">${whereText(ev)}</p></section>
+  <section class="card"><h2>Your name on entries</h2><input id="eRef" value="${esc(prefs.ref||'')}" placeholder="e.g. Sam, Field 2" maxlength="40" aria-label="Your name on entries"><p class="hint">Kept on this device and added to each entry you log, so co-referees can tell who called what.</p></section>
+  <section class="card"><h2>Teams <span class="count" id="eTeamCount"></span></h2><p class="hint">Paste team numbers: one per line with an optional team name, or all on one line separated by spaces or commas.</p><textarea id="eTeams" rows="4" placeholder="1121A Gear Grinders&#10;3310C&#10;4512X"></textarea><div class="actions"><button class="primary" data-act="addTeams">Add teams</button></div><div id="eTeamList" class="chips" style="margin-top:12px"></div></section>
+  <section class="card"><h2>Match schedule <span class="count" id="eMatchCount"></span></h2><p class="hint">One match per line: the match name, an optional time, then ${P.blue?`${P.red===2?'two red and two blue teams':'the red team and the blue team'}`:'the two teamwork teams'}. Commas, tabs or spaces all work, so you can paste rows from a spreadsheet or the Tournament Manager schedule.</p><pre class="ex">${esc(ex)}</pre><textarea id="eSched" rows="5" placeholder="${esc(ex)}"></textarea><div class="actions"><button class="primary" data-act="schedAdd">Add matches</button><button data-act="schedRep">Replace schedule</button><button class="danger" data-act="schedClr">Clear schedule</button></div><p class="hint" id="eSchedMsg"></p></section>
+  <section class="card"><h2>Back up or merge</h2><p class="hint">Export any time. Importing a backup from another device merges it into this event; anything already here is kept.</p><div class="actions"><button data-act="export" data-k="csv">Export CSV</button><button data-act="export" data-k="json">Export backup</button><button data-act="import">Import backup</button></div></section>
+  <section class="card"><h2>Delete</h2><p class="hint">This can’t be undone. Export a backup first.</p><div class="actions"><button class="danger" data-act="clearEntries">Delete all entries</button><button class="danger" data-act="delEvent">Delete this event</button></div></section>`},
+ after:ev=>{const c=$('#eTeamCount');if(!c)return;const ts=allTeams(ev);c.textContent=ts.length;$('#eMatchCount').textContent=ev.matches.length;
+  $('#eTeamList').innerHTML=ts.map(t=>`<span class="chip static"><b>${esc(t)}</b>${ev.teams.some(x=>x.num===t)&&!ev.matches.some(m=>m.red.includes(t)||m.blue.includes(t))&&!viol().some(e=>e.team===t)?`<button class="x" data-act="rmTeam" data-t="${esc(t)}" aria-label="Remove ${esc(t)}">×</button>`:''}</span>`).join('')}};
+
+/* ---------- rendering ---------- */
+let shellKey='';
+function renderSync(){const el=$('#sync'),ev=curEv();if(!el)return;let c='',t='';
+ if(!ev)t=S.waitCloud?'Connecting…':'';else if(ev.where==='device'){t=LS.ok?'This device':'Not saving: export a backup';c=LS.ok?'':'bad'}
+ else if(!S.db){t='Connecting…';c='busy'}else if(!S.canWrite){t='View only';c='bad'}else if(S.pending>0||S.entPending){t=S.offline?'Offline, will sync':'Saving…';c='busy'}else if(S.entErr){t='Can’t reach saved data';c='bad'}else if(S.entStale){t='May be out of date';c='busy'}else t=WL[ev.where]+' · synced';
+ el.className='sync '+c;el.innerHTML=t?`<i></i>${esc(t)}`:''}
+function renderHeader(){const ev=curEv();$('#evName').textContent=ev?ev.name:(S.waitCloud?'Loading…':'VEX Ref Log');$('#evMeta').textContent=ev?`${PROG[ev.program].label} · ${PROG[ev.program].game} · ${fmtD(ev.date)}`:'Match anomaly log';
+ document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===S.tab)));renderSync()}
+function renderBody(){const ev=curEv(),v=V[S.tab],b=$('#body');if(!ev)return;if(b&&v.body)b.innerHTML=v.body(ev);if(v.after)v.after(ev)}
+function renderAll(){renderHeader();const ev=curEv(),key=S.tab+'|'+(ev?ev.where+ev.id+ev.program:'none');
+ if(key!==shellKey){shellKey=key;const m=$('#main');
+  if(!ev)m.innerHTML=S.waitCloud?'<p class="none">Loading your event…</p>':'<div class="empty"><h2>No events yet</h2><p>Create an event for a tournament, scrimmage or practice night. No RobotEvents listing needed.</p><button class="primary" data-act="events">Create an event</button></div>';
+  else{m.innerHTML=V[S.tab].shell(ev);if(V[S.tab].mount)V[S.tab].mount(ev)}}
+ renderBody()}
+function setCur(id){const e=S.events.get(id);if(!e)return;S.cur=id;S.waitCloud=false;prefs.cur=id;prefs.curWhere=e.where;savePrefs();S.open={match:null,team:null};ensureBound();shellKey='';renderAll()}
+const jump=id=>{const el=document.getElementById(id);if(el)el.scrollIntoView({block:'start'})};
+
+/* ---------- sheets & toasts ---------- */
+let lastFocus=null,tt=0;
+function sheet(html,mount){lastFocus=document.activeElement;const c=$('#sheetCard');c.innerHTML=html;$('#sheet').hidden=false;document.body.style.overflow='hidden';c.scrollTop=0;if(mount)mount(c);
+ const h=c.querySelector('h2');if(h){h.tabIndex=-1;h.focus({preventScroll:true})}}
+function closeSheet(){$('#sheet').hidden=true;$('#sheetCard').innerHTML='';document.body.style.overflow='';if(lastFocus&&lastFocus.isConnected)lastFocus.focus({preventScroll:true})}
+function toast(msg,act){const el=$('#toast');el.innerHTML=`<span>${esc(msg)}</span>${act?`<button type="button" id="toastAct">${esc(act.label)}</button>`:''}`;el.hidden=false;if(act)$('#toastAct').onclick=()=>{el.hidden=true;act.fn()};clearTimeout(tt);tt=setTimeout(()=>{el.hidden=true},act?6500:2800)}
+function ask(title,msg,label){return new Promise(res=>sheet(`<h2 id="sheetTitle">${esc(title)}</h2><p>${esc(msg)}</p><div class="actions"><span class="sp"></span><button type="button" id="aNo">Cancel</button><button type="button" class="danger solid" id="aYes">${esc(label)}</button></div>`,c=>{c.querySelector('#aNo').onclick=()=>{closeSheet();res(false)};c.querySelector('#aYes').onclick=()=>{closeSheet();res(true)}}))}
+
+/* ---------- entry form ---------- */
+function openEntry(o){const ev=curEv();if(!ev){openEvents();return}if(!writable(ev)){toast('This event is view-only for you');return}
+ const P=PROG[ev.program],RM=ruleMap(ev),old=o.id?S.entries.find(x=>x.id===o.id):null;if(o.id&&!old)return;
+ const e=old?{...old,rules:old.rules.slice()}:{id:uid(),kind:'entry',team:o.team||'',match:o.match||'',outcome:o.outcome||'minor',affecting:false,rules:[],notes:'',ref:prefs.ref||'',at:Date.now()};const sel=e.rules;
+ sheet(`<form id="entForm" novalidate><h2 id="sheetTitle">${old?'Edit entry':'New entry'}</h2>
+ <div class="grid2"><label>Team<input id="fTeam" list="dlT" autocomplete="off" autocapitalize="characters" value="${esc(e.team)}" placeholder="1121A" maxlength="10"></label><label>Match <span class="opt">optional</span><input id="fMatch" list="dlM" autocomplete="off" autocapitalize="characters" value="${esc(e.match)}" placeholder="Q12" maxlength="20"></label></div>
+ <datalist id="dlT">${allTeams(ev).map(t=>`<option value="${esc(t)}"></option>`).join('')}</datalist><datalist id="dlM"></datalist><div id="fCtx" class="ctx"></div>
+ <fieldset class="outs"><legend>Outcome</legend>${OUTS.map(x=>`<label><input type="radio" name="fOut" value="${x}"${x===e.outcome?' checked':''}><span class="o-${x}">${OL[x]}</span></label>`).join('')}</fieldset>
+ <label class="chk" id="fAffW"><input type="checkbox" id="fAff"${e.affecting?' checked':''}> Match affecting: it changed who won</label>
+ <div class="lbl">Rules <span class="opt" id="fNeed"></span></div><div id="fSel" class="chips"></div><div id="fPicks" class="chips"></div>
+ <input id="fRuleQ" type="search" placeholder="Search rules: SG6, holding, expansion" aria-label="Search rules" autocomplete="off"><div id="fRes" class="rres"></div>
+ <label>Notes<textarea id="fNotes" rows="3" maxlength="600" placeholder="What happened and where on the field">${esc(e.notes)}</textarea></label>
+ <label>Referee<input id="fRef" value="${esc(e.ref)}" maxlength="40" placeholder="Your name"></label><p class="err" id="fErr" role="alert"></p>
+ <div class="actions">${old?'<button type="button" class="danger" id="fDel">Delete</button>':''}<span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary" type="submit">${old?'Save changes':'Save entry'}</button></div></form>`,c=>{
+  const q=s=>c.querySelector(s),out=()=>(q('input[name=fOut]:checked')||{}).value||'note';
+  const picks=()=>{const cnt={};viol().forEach(x=>x.rules.forEach(r=>cnt[r]=(cnt[r]||0)+1));const top=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).slice(0,6);for(const r of P.picks)if(top.length<8&&!top.includes(r))top.push(r);return top};
+  const lab=r=>(RM.get(r)||{}).label||'';
+  const draw=()=>{q('#fSel').innerHTML=sel.map(r=>`<button type="button" class="chip on" data-r="${esc(r)}" aria-label="Remove rule ${esc(r)}">&lt;${esc(r)}&gt; <span class="lab">${esc(lab(r))}</span> ×</button>`).join('');
+   q('#fPicks').innerHTML=picks().filter(r=>!sel.includes(r)).map(r=>`<button type="button" class="chip" data-r="${esc(r)}" title="${esc(lab(r))}">&lt;${esc(r)}&gt;</button>`).join('');const o=out();q('#fAffW').hidden=o!=='major';q('#fNeed').textContent=o==='minor'||o==='major'?'required: cite the rule number':'optional';ctx()};
+  const search=()=>{const raw=q('#fRuleQ').value.trim().replace(/[<>]/g,''),l=raw.toLowerCase();if(!raw){q('#fRes').innerHTML='';return}
+   let h=rulesFor(ev).filter(r=>!sel.includes(r.code)&&(r.code.toLowerCase().startsWith(l)||r.label.toLowerCase().includes(l))).slice(0,8).map(r=>`<button type="button" data-r="${esc(r.code)}"><b class="rc">&lt;${esc(r.code)}&gt;</b><span>${esc(r.label)}</span></button>`).join('');
+   const code=raw.toUpperCase();if(/^[A-Z]{1,5}\d{1,2}[A-Z]?$/.test(code)&&!RM.has(code)&&!sel.includes(code))h+=`<button type="button" data-r="${esc(code)}"><b class="rc">&lt;${esc(code)}&gt;</b><span>Use this code (not in the list)</span></button>`;
+   q('#fRes').innerHTML=h||'<p class="none">No rule found.</p>'};
+  const ctx=()=>{const t=q('#fTeam').value.trim().toUpperCase(),mv=q('#fMatch').value.trim().toUpperCase();const ms=ev.matches.filter(m=>m.red.includes(t)||m.blue.includes(t));
+   q('#dlM').innerHTML=(ms.length?ms:ev.matches).map(m=>`<option value="${esc(m.label)}"></option>`).join('');if(!t){q('#fCtx').innerHTML='';return}
+   const s=stats().get(t),list=s?s.list.filter(x=>x.id!==e.id):[],byR={};list.forEach(x=>{if(x.outcome==='minor')x.rules.forEach(r=>byR[r]=(byR[r]||0)+1)});
+   const parts=Object.entries(byR).map(([r,n])=>`&lt;${esc(r)}&gt;${n>1?' ×'+n:''}`),mi=list.filter(x=>x.outcome==='minor').length,ma=list.filter(x=>x.outcome==='major').length;
+   const w=warns(list.concat([{...e,team:t,match:mv,outcome:out(),rules:sel.slice()}]));
+   q('#fCtx').innerHTML=`<b>${esc(t)}</b> ${allTeams(ev).includes(t)?'':'<span class="new">(new team) </span>'}so far: ${mi} Minor${parts.length?' ('+parts.join(', ')+')':''} · ${ma} Major${warnBox(w)}`};
+  c.addEventListener('click',ev2=>{const b=ev2.target.closest('[data-r]');if(!b)return;const r=b.dataset.r,i=sel.indexOf(r);if(i>=0)sel.splice(i,1);else if(sel.length<8)sel.push(r);q('#fRuleQ').value='';q('#fRes').innerHTML='';draw()});
+  q('#fRuleQ').addEventListener('input',search);
+  q('#fRuleQ').addEventListener('keydown',k=>{if(k.key==='Enter'){k.preventDefault();const b=q('#fRes [data-r]');if(b)b.click()}});
+  q('#fTeam').addEventListener('input',ctx);q('#fMatch').addEventListener('input',ctx);c.querySelectorAll('input[name=fOut]').forEach(r=>r.addEventListener('change',draw));
+  if(old)q('#fDel').onclick=()=>{const keep={...old};removeEntry(old.id);closeSheet();toast(`Deleted ${OL[keep.outcome]} for ${keep.team}`,{label:'Undo',fn:()=>persistEntry(keep)})};
+  q('#entForm').onsubmit=s=>{s.preventDefault();const t=q('#fTeam').value.trim().toUpperCase().replace(/\s+/g,''),o=out(),err=m=>{q('#fErr').textContent=m};
+   if(!t)return err('Enter a team number.');if((o==='minor'||o==='major')&&!sel.length)return err('Add the rule you cited. Minor and Major violations need a rule number.');
+   const ref=q('#fRef').value.trim();prefs.ref=ref;savePrefs();
+   persistEntry({...e,team:t,match:q('#fMatch').value.trim().toUpperCase(),outcome:o,affecting:o==='major'&&q('#fAff').checked,rules:sel.slice(),notes:q('#fNotes').value.trim(),ref,at:old?old.at:Date.now()});closeSheet();toast(`${old?'Updated':'Logged'} ${OL[o]} for ${t}`)};
+  draw();if(!e.team)setTimeout(()=>q('#fTeam').focus(),30)})}
+function setAuton(mid,patch){const ev=curEv();if(!writable(ev)){toast('This event is view-only for you');return}const m=ev.matches.find(x=>x.id===mid);if(!m)return;
+ const a=autonFor(m)||{id:'auton-'+m.id,kind:'auton',matchId:m.id,match:m.label,bonus:'',awpRed:false,awpBlue:false,at:Date.now()};persistEntry({...a,...patch,match:m.label})}
+
+/* ---------- events ---------- */
+function openEvents(){const evs=[...S.events.values()].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||b.created-a.created),cloud=!!S.db&&S.canWrite,cp=(curEv()||{}).program||'V5RC';
+ sheet(`<h2 id="sheetTitle">Events</h2><div class="evlist">${evs.map(e=>`<button class="evitem${e.id===S.cur?' cur':''}" data-act="pickEv" data-id="${esc(e.id)}"><b>${esc(e.name)}</b><span>${PROG[e.program].label} · ${fmtD(e.date)} · ${WL[e.where]}</span></button>`).join('')||'<p class="none">No events yet.</p>'}</div>
+ <h3>New event</h3><p class="hint">Works for any event: tournaments, scrimmages, practice nights, league sessions. No RobotEvents listing needed.</p>
+ <form id="newEv" class="grid2"><label>Name<input id="nName" required maxlength="80" placeholder="Saturday scrimmage"></label><label>Program<select id="nProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===cp?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="nDate" type="date" value="${today()}"></label><label>RobotEvents SKU <span class="opt">optional</span><input id="nSku" maxlength="40"></label>
+ <fieldset class="where"><legend>Keep it</legend>${cloud?`<label class="rad"><input type="radio" name="nWhere" value="shared" checked><span><b>Shared</b>Anyone you share this page with sees it live. People with edit access can log entries.</span></label>${S.uid?'<label class="rad"><input type="radio" name="nWhere" value="mine"><span><b>Only you</b>Saved to your account, on any device.</span></label>':''}`:''}<label class="rad"><input type="radio" name="nWhere" value="device"${cloud?'':' checked'}><span><b>This device</b>Stays in this browser. Works without signing in.</span></label></fieldset>
+ <p class="err" id="nErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary">Create event</button></div></form>`,c=>{
+  c.querySelector('#newEv').onsubmit=s=>{s.preventDefault();const name=c.querySelector('#nName').value.trim();if(!name){c.querySelector('#nErr').textContent='Give the event a name.';return}
+   const where=(c.querySelector('input[name=nWhere]:checked')||{}).value||'device';const ev=cleanEvent({name,program:c.querySelector('#nProg').value,date:c.querySelector('#nDate').value,sku:c.querySelector('#nSku').value,created:Date.now()},uid(),where);
+   persistEvent(ev);S.tab='event';prefs.tab='event';setCur(ev.id);closeSheet();toast('Event created. Add teams and a schedule, or start logging.')}})}
+
+function parseTeams(text,prog){const out=[];for(const line of text.split(/\r?\n/)){const toks=line.split(/[\s,;\t]+/).filter(Boolean);if(!toks.length)continue;
+ if(toks.every(t=>isTeam(t,prog)))toks.forEach(t=>out.push({num:t.toUpperCase(),name:''}));else if(isTeam(toks[0],prog))out.push({num:toks[0].toUpperCase(),name:line.trim().slice(toks[0].length).replace(/^[\s,;\t\-–]+/,'').slice(0,60)})}return out}
+function parseSched(text,prog){const P=PROG[prog],need=P.red+P.blue,out=[];let auto=1;
+ for(const raw of text.split(/\r?\n/)){let line=raw.trim(),time='';if(!line)continue;
+  line=line.replace(/\b(\d{1,2}:\d{2})(?::\d{2})?\s*([AaPp]\.?[Mm]\.?)?/,(x,h,ap)=>{time=h+(ap?' '+ap.replace(/\./g,'').toUpperCase():'');return ' '});
+  let toks=line.split(/[\s,;|\t]+/).filter(Boolean),label;if(!toks.length)continue;
+  if(/\b(red|blue)\b/i.test(line)&&!toks.some(t=>/\d{2,}/.test(t)))continue;
+  if(/^(Q|QF|SF|F|R16|R32|R64|P|E)$/i.test(toks[0])&&/^\d+(-\d+)?$/.test(toks[1]||'')){label=toks[0]+toks[1];toks=toks.slice(2)}
+  else if(/^\d+$/.test(toks[0])&&toks.length>need){label='Q'+toks[0];toks=toks.slice(1)}
+  else if(isTeam(toks[0],prog)&&!/^[A-Z]+\d+(-\d+)?$/i.test(toks[0])&&toks.length<=need){label='Q'+auto}
+  else{label=toks[0];toks=toks.slice(1)}
+  const teams=toks.filter(t=>isTeam(t,prog)).map(t=>t.toUpperCase()).slice(0,need);if(!teams.length)continue;auto++;
+  out.push({label:label.toUpperCase().slice(0,20),time,red:teams.slice(0,P.red),blue:teams.slice(P.red,need)})}return out}
+function applySched(ev,list,replace){const byL=new Map(ev.matches.map(m=>[m.label,m]));const fresh=list.map(m=>({...m,id:(byL.get(m.label)||{}).id||uid()}));
+ if(replace)ev.matches=fresh;else for(const m of fresh){const i=ev.matches.findIndex(x=>x.label===m.label);if(i>=0)ev.matches[i]=m;else ev.matches.push(m)}}
+
+/* ---------- export / import ---------- */
+const csvCell=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return/[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+function buildCSV(ev){const rows=[['Time','Match','Team','Outcome','Match affecting','Rules','Notes','Referee']].concat(viol().slice().sort((a,b)=>a.at-b.at).map(e=>[new Date(e.at).toLocaleString(),e.match,e.team,OL[e.outcome],e.affecting?'Yes':'',e.rules.map(r=>'<'+r+'>').join(' '),e.notes,e.ref]));
+ const auto=S.entries.filter(e=>e.kind==='auton'&&(e.bonus||e.awpRed||e.awpBlue));if(auto.length){rows.push([],['Match','Autonomous Bonus','Red AWP','Blue AWP']);auto.forEach(a=>rows.push([a.match,a.bonus,a.awpRed?'Yes':'',a.awpBlue?'Yes':'']))}
+ return rows.map(r=>r.map(csvCell).join(',')).join('\r\n')}
+async function doExport(k){const ev=curEv();if(!ev)return;const base=(ev.name.replace(/[^\w-]+/g,'-').replace(/^-+|-+$/g,'')||'event').slice(0,40),name=`${base}-anomaly-log.${k}`;
+ const data=k==='csv'?buildCSV(ev):JSON.stringify({app:'vex-ref-log',version:1,exported:Date.now(),event:evBody(ev),entries:S.entries},null,1);
+ if(S.dl){try{await S.dl.save({filename:name,data});toast('Saved '+name);return}catch(e){if(e&&e.code==='declined')return}}
+ sheet(`<h2 id="sheetTitle">${esc(name)}</h2><p class="hint">Downloads aren’t available here, so copy the text and paste it into a file or a note.</p><textarea id="xText" rows="10" readonly>${esc(data)}</textarea><div class="actions"><span class="sp"></span><button type="button" data-act="close">Close</button><button type="button" class="primary" id="xCopy">Copy</button></div>`,c=>{
+  c.querySelector('#xCopy').onclick=async()=>{try{await navigator.clipboard.writeText(data);toast('Copied')}catch(e){const t=c.querySelector('#xText');t.focus();t.select();toast('Text selected. Copy it from here.')}}})}
+function openImport(){const ev=curEv();if(!ev||!writable(ev)){toast('This event is view-only for you');return}
+ sheet(`<h2 id="sheetTitle">Import a backup</h2><p class="hint">Choose a backup exported from this app, or paste its text. It merges into <b>${esc(ev.name)}</b>: new teams, matches and entries are added and nothing here is removed.</p><label>Backup file<input type="file" id="iFile" accept=".json,application/json,text/plain"></label><label>Or paste it<textarea id="iText" rows="6"></textarea></label><p class="err" id="iErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button type="button" class="primary" id="iGo">Merge</button></div>`,c=>{
+  c.querySelector('#iFile').onchange=async x=>{const f=x.target.files[0];if(f)c.querySelector('#iText').value=await f.text()};
+  c.querySelector('#iGo').onclick=()=>{let d;try{d=JSON.parse(c.querySelector('#iText').value)}catch(e){}if(!d||d.app!=='vex-ref-log'||!d.event){c.querySelector('#iErr').textContent='That doesn’t look like a backup from this app.';return}closeSheet();toast(merge(ev,d))}})}
+function merge(ev,d){const inc=cleanEvent(d.event,'import',ev.where);let nt=0,nm=0,ne=0,nr=0;
+ for(const t of inc.teams)if(!ev.teams.some(x=>x.num===t.num)){ev.teams.push(t);nt++}
+ for(const m of inc.matches)if(!ev.matches.some(x=>x.label===m.label)){ev.matches.push({...m,id:uid()});nm++}
+ for(const r of inc.customRules)if(!ev.customRules.some(x=>x.code===r.code)){ev.customRules.push(r);nr++}
+ if(nt||nm||nr)persistEvent(ev);const byL=new Map(ev.matches.map(m=>[m.label,m.id]));
+ for(const raw of arr(d.entries)){let e=cleanEntry(raw,raw&&raw.id);if(!e)continue;
+  if(e.kind==='auton'){const mid=byL.get(e.match);if(!mid)continue;e={...e,id:'auton-'+mid,matchId:mid};if(S.entries.some(x=>x.id===e.id))continue}else if(S.entries.some(x=>x.id===e.id))continue;
+  persistEntry(e,true);if(e.kind==='entry')ne++}
+ renderAll();return`Merged ${ne} entr${ne===1?'y':'ies'}, ${nm} match${nm===1?'':'es'} and ${nt} team${nt===1?'':'s'}`}
+
+/* ---------- events wiring ---------- */
+const A={
+ tab:b=>{S.tab=b.dataset.tab;prefs.tab=S.tab;savePrefs();renderAll();window.scrollTo(0,0)},
+ events:()=>openEvents(),close:()=>closeSheet(),
+ newBlank:()=>{const ev=curEv(),m=ev&&S.tab==='matches'&&ev.matches.find(x=>x.id===S.open.match);openEntry({match:m?m.label:'',team:S.tab==='teams'&&S.open.team||''})},
+ openMatch:b=>{S.open.match=S.open.match===b.dataset.id?null:b.dataset.id;renderBody();if(S.open.match)jump('m-'+S.open.match)},
+ openTeam:b=>{S.open.team=S.open.team===b.dataset.t?null:b.dataset.t;renderBody()},
+ gotoTeam:b=>{S.tab='teams';S.tq='';S.open.team=b.dataset.t;shellKey='';renderAll();jump('t-'+b.dataset.t)},
+ gotoMatch:b=>{S.tab='matches';S.mq='';S.mround='all';S.open.match=b.dataset.id;shellKey='';renderAll();jump('m-'+b.dataset.id)},
+ new:b=>openEntry({team:b.dataset.t,match:b.dataset.m,outcome:b.dataset.o}),edit:b=>openEntry({id:b.dataset.id}),
+ bonus:b=>setAuton(b.dataset.id,{bonus:b.dataset.k}),
+ awp:b=>{const ev=curEv(),m=ev.matches.find(x=>x.id===b.dataset.id);if(!m)return;const k=b.dataset.k==='red'?'awpRed':'awpBlue';setAuton(m.id,{[k]:!(autonFor(m)||{})[k]})},
+ mround:b=>{S.mround=b.dataset.k;shellKey='';renderAll()},fout:b=>{S.f.out=b.dataset.k;shellKey='';renderAll()},
+ ruleLog:b=>{S.tab='log';S.f={out:'all',rule:b.dataset.k,ref:'',q:'',sort:'new'};prefs.tab='log';savePrefs();renderAll()},
+ export:b=>doExport(b.dataset.k),import:()=>openImport(),pickEv:b=>{setCur(b.dataset.id);closeSheet()},
+ delRule:b=>{const ev=curEv();if(!writable(ev))return;ev.customRules=ev.customRules.filter(r=>r.code!==b.dataset.k);persistEvent(ev)},
+ rmTeam:b=>{const ev=curEv();if(!writable(ev))return;ev.teams=ev.teams.filter(t=>t.num!==b.dataset.t);persistEvent(ev)},
+ addTeams:()=>{const ev=curEv();if(!writable(ev))return toast('This event is view-only for you');const ta=$('#eTeams'),L=parseTeams(ta.value,ev.program);if(!L.length)return toast('No team numbers found');let n=0;
+  for(const t of L){const x=ev.teams.find(y=>y.num===t.num);if(x){if(t.name)x.name=t.name}else{ev.teams.push(t);n++}}ta.value='';persistEvent(ev);toast(`Added ${n} team${n===1?'':'s'}`)},
+ schedAdd:()=>sched(false),schedRep:()=>sched(true),
+ schedClr:async()=>{const ev=curEv();if(!writable(ev)||!ev.matches.length)return;if(await ask('Clear the schedule?','Matches are removed. Logged entries stay in the log.','Clear schedule')){ev.matches=[];persistEvent(ev)}},
+ clearEntries:async()=>{const ev=curEv();if(!writable(ev))return;if(await ask('Delete all entries?',`Every entry in ${ev.name} is removed for everyone who can see this event.`,'Delete entries')){await clearEntries(ev);toast('All entries deleted')}},
+ delEvent:async()=>{const ev=curEv();if(!writable(ev))return;if(await ask('Delete this event?',`${ev.name}, its schedule and every entry are removed.`,'Delete event'))deleteEvent(ev)}};
+function sched(replace){const ev=curEv();if(!writable(ev))return toast('This event is view-only for you');const ta=$('#eSched'),L=parseSched(ta.value,ev.program),msg=$('#eSchedMsg');
+ if(!L.length){msg.textContent='No matches found. Each line needs a match name and team numbers.';return}applySched(ev,L,replace);ta.value='';persistEvent(ev);msg.textContent=`${replace?'Schedule replaced':'Added or updated'}: ${L.length} match${L.length===1?'':'es'}. Check them in the Matches tab.`}
+
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const f=A[b.dataset.act];if(f){e.preventDefault();f(b)}});
+$('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet()});
+const IN={mq:v=>S.mq=v,tq:v=>S.tq=v,fq:v=>S.f.q=v,rq:v=>S.rq=v};
+$('#main').addEventListener('input',e=>{const f=IN[e.target.id];if(f){f(e.target.value);renderBody()}});
+$('#main').addEventListener('change',e=>{const id=e.target.id,v=e.target.value;if(id==='tsort'){S.tsort=v;renderBody()}else if(id==='frule'){S.f.rule=v;renderBody()}else if(id==='fref'){S.f.ref=v;renderBody()}else if(id==='fsort'){S.f.sort=v;renderBody()}else if(id==='eRef'){prefs.ref=v.trim();savePrefs();toast('Name saved')}});
+$('#main').addEventListener('submit',e=>{e.preventDefault();const ev=curEv();if(!ev)return;if(!writable(ev))return toast('This event is view-only for you');
+ if(e.target.id==='evForm'){ev.name=$('#eName').value.trim()||ev.name;ev.program=$('#eProg').value;ev.date=$('#eDate').value;ev.sku=$('#eSku').value.trim();ev.sample=false;persistEvent(ev);shellKey='';renderAll();toast('Event saved')}
+ if(e.target.id==='ruleForm'){const code=$('#rcode').value.trim().toUpperCase().replace(/[<>\s]/g,'').slice(0,12),label=$('#rlabel').value.trim();if(!code)return;if(ruleMap(ev).has(code))return toast(`<${code}> is already in the list`);ev.customRules.push({code,label});persistEvent(ev);toast(`Added <${code}>`)}});
+addEventListener('online',()=>{S.offline=false;renderSync()});addEventListener('offline',()=>{S.offline=true;renderSync()});
+
+/* ---------- boot ---------- */
+rebuildEvents();renderAll();
+const giveUp=setTimeout(()=>{if(S.waitCloud){S.waitCloud=false;rebuildEvents();shellKey='';renderAll()}},10000);
+function cloudReady(){if(S.answered.shared&&(S.answered.mine||!S.uid)&&S.waitCloud){S.waitCloud=false;clearTimeout(giveUp)}rebuildEvents();renderAll()}
+function watchList(where,path){S.db.collection(path).onSnapshot(snap=>{const m=new Map();for(const d of snap.docs){const x=d.data();if(x&&x.kind==='event')m.set(d.id,cleanEvent(x,d.id,where))}
+  for(const[id,e]of cloudEv[where])if(!m.has(id)&&wq.has(evDoc(e)))m.set(id,e);cloudEv[where]=m;if(!snap.metadata.fromCache)S.answered[where]=true;cloudReady()},()=>{S.answered[where]=true;cloudReady()})}
+(async()=>{const c=window.claude;if(!c||!c.use){S.waitCloud=false;rebuildEvents();shellKey='';renderAll();return}
+ try{const[db,user,dl]=await Promise.all([c.use('db'),c.use('user'),c.use('downloads')]);S.dl=dl||null;
+  if(user){try{S.uid=await user.id()}catch(e){}try{if(await user.can('data.write')===false)S.canWrite=false}catch(e){}}
+  if(db){S.db=db;watchList('shared','events');if(S.uid)watchList('mine','data/users/'+S.uid);S.boundKey=null;ensureBound()}else{S.waitCloud=false}
+ }catch(e){S.waitCloud=false}
+ rebuildEvents();shellKey='';renderAll()})();
+}
+</script>
+</body>
+</html>
