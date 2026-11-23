@@ -193,6 +193,10 @@ label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:15px}
 .note{background:var(--surf);border-radius:9px;padding:9px 11px;font-size:14px;margin:8px 0}
 details.adv{margin-top:14px}
 details.adv summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center}
+.grp{font-weight:700;font-size:14px;color:var(--mut);margin:14px 0 2px}
+.divs{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px 12px}
+.evitem[disabled]{opacity:.6}
+#reBrowse .seg{margin-bottom:4px}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:#16171b;color:#fff;border-radius:12px;padding:10px 12px 10px 16px;display:flex;gap:12px;align-items:center;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgb(0 0 0/.25)}
 .toast[hidden]{display:none}
 .toast button{background:none;border:1px solid #5b5f69;color:var(--amber);border-radius:8px;min-height:38px;padding:0 12px;font-weight:700}
@@ -368,7 +372,7 @@ const emptyBox=(h,p,btn,tab)=>`<div class="empty"><h2>${h}</h2><p>${p}</p>${btn?
 
 const V={};
 V.matches={
- shell:ev=>`${ev.sample?'<p class="sample">Example event with sample entries. Start your own from the event menu at the top.</p>':''}<div class="tools"><div class="seg" role="group" aria-label="Round">${[['all','All'],['Q','Quals'],['E','Elims'],['P','Practice']].map(([k,l])=>`<button data-act="mround" data-k="${k}" aria-pressed="${S.mround===k}">${l}</button>`).join('')}</div><input id="mq" type="search" placeholder="Find a team or match" value="${esc(S.mq)}" aria-label="Find a team or match" autocomplete="off"></div><div id="body"></div>`,
+ shell:ev=>`${ev.sample?'<p class="sample">Example event with sample entries. Pick a real event from the event menu at the top.</p>':''}<div class="tools"><div class="seg" role="group" aria-label="Round">${[['all','All'],['Q','Quals'],['E','Elims'],['P','Practice']].map(([k,l])=>`<button data-act="mround" data-k="${k}" aria-pressed="${S.mround===k}">${l}</button>`).join('')}</div><input id="mq" type="search" placeholder="Find a team or match" value="${esc(S.mq)}" aria-label="Find a team or match" autocomplete="off"></div><div id="body"></div>`,
  body:ev=>{if(!ev.matches.length)return ev.sku?`<div class="empty"><h2>No schedule yet</h2><p>Pull it from RobotEvents once it’s posted, paste it in the Event tab, or log by team with + Entry.</p><div class="actions"><button class="primary" data-act="reUpdate">Load schedule from RobotEvents</button><button data-act="tab" data-tab="event">Paste a schedule</button></div></div>`:emptyBox('No schedule yet','Load an event from RobotEvents, paste your match list in the Event tab, or log by team with + Entry. A schedule is optional.','Add a schedule','event');
   const q=S.mq.trim().toUpperCase(),ST=stats();
   const ms=ev.matches.filter(m=>(S.mround==='all'||roundOf(m.label)===S.mround)&&(!q||m.label.startsWith(q)||m.red.concat(m.blue).some(t=>t.includes(q))));
@@ -423,7 +427,7 @@ function whereText(ev){return ev.where==='device'?(LS.ok?'Kept in this browser o
 V.event={
  shell:ev=>{const P=PROG[ev.program],ex=P.blue?(P.red===2?'Q1  9:00 AM  1121A 4512X  3310C 7110Z':'Q1  9:00 AM  UCF1  BLRS'):'Q1  9:00 AM  1121A 4512X';
   return `<section class="card"><h2>Event</h2><form id="evForm" class="grid2"><label>Name<input id="eName" value="${esc(ev.name)}" maxlength="80" required></label><label>Program<select id="eProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===ev.program?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="eDate" type="date" value="${esc(ev.date)}"></label><label>RobotEvents SKU <span class="opt">optional</span><input id="eSku" value="${esc(ev.sku)}" maxlength="40" placeholder="Leave blank for scrimmages"></label><div class="actions"><button class="primary">Save event</button></div></form><p class="hint">${whereText(ev)}</p></section>
-  <section class="card"><h2>RobotEvents</h2>${ev.sku?`<p class="hint">Linked to ${esc(ev.sku)}. Pull the latest teams and schedule, for example once the schedule is posted or after alliance selection. Entries you’ve logged are never changed.</p>${ev.re&&ev.re.divs.length>1?`<label>Division<select id="reDiv">${ev.re.divs.map(d=>`<option value="${d.id}"${d.id===ev.re.div?' selected':''}>${esc(d.name)}</option>`).join('')}</select></label>`:''}<div class="actions"><button class="primary" data-act="reUpdate">Update from RobotEvents</button></div>`:`<p class="hint">Add the event’s RobotEvents SKU above, then pull its teams and schedule from here.</p><div class="actions"><button data-act="reOpen">Load a different RobotEvents event</button></div>`}<p class="hint" id="reMsg" role="status"></p>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenLine()}</section>
+  <section class="card"><h2>RobotEvents</h2>${ev.sku?`<p class="hint">Linked to ${esc(ev.sku)}. Pull the latest teams and schedule, for example once the schedule is posted or after alliance selection. Entries you’ve logged are never changed.</p>${ev.re&&ev.re.divs.length>1?`<label>Division<select id="reDiv">${ev.re.divs.map(d=>`<option value="${d.id}"${d.id===ev.re.div?' selected':''}>${esc(d.name)}</option>`).join('')}</select></label>`:''}<div class="actions"><button class="primary" data-act="reUpdate">Update from RobotEvents</button></div>`:`<p class="hint">Add the event’s RobotEvents SKU above, then pull its teams and schedule from here.</p><div class="actions"><button data-act="events">Pick a RobotEvents event</button></div>`}<p class="hint" id="reMsg" role="status"></p>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenLine()}</section>
   <section class="card"><h2>Your name on entries</h2><input id="eRef" value="${esc(prefs.ref||'')}" placeholder="e.g. Sam, Field 2" maxlength="40" aria-label="Your name on entries"><p class="hint">Kept on this device and added to each entry you log, so co-referees can tell who called what.</p></section>
   <section class="card"><h2>Teams <span class="count" id="eTeamCount"></span></h2><p class="hint">Paste team numbers: one per line with an optional team name, or all on one line separated by spaces or commas.</p><textarea id="eTeams" rows="4" placeholder="1121A Gear Grinders&#10;3310C&#10;4512X"></textarea><div class="actions"><button class="primary" data-act="addTeams">Add teams</button></div><div id="eTeamList" class="chips" style="margin-top:12px"></div></section>
   <section class="card"><h2>Match schedule <span class="count" id="eMatchCount"></span></h2><p class="hint">One match per line: the match name, an optional time, then ${P.blue?`${P.red===2?'two red and two blue teams':'the red team and the blue team'}`:'the two teamwork teams'}. Commas, tabs or spaces all work, so you can paste rows from a spreadsheet or the Tournament Manager schedule.</p><pre class="ex">${esc(ex)}</pre><textarea id="eSched" rows="5" placeholder="${esc(ex)}"></textarea><div class="actions"><button class="primary" data-act="schedAdd">Add matches</button><button data-act="schedRep">Replace schedule</button><button class="danger" data-act="schedClr">Clear schedule</button></div><p class="hint" id="eSchedMsg"></p></section>
@@ -502,11 +506,11 @@ function setAuton(mid,patch){const ev=curEv();if(!writable(ev)){toast('This even
 /* ---------- events ---------- */
 function whereRadios(){const cloud=!!S.db&&S.canWrite;return `<fieldset class="where"><legend>Keep it</legend>${cloud?`<label class="rad"><input type="radio" name="nWhere" value="shared" checked><span><b>Shared</b>Anyone you share this page with sees it live. People with edit access can log entries.</span></label>${S.uid?'<label class="rad"><input type="radio" name="nWhere" value="mine"><span><b>Only you</b>Saved to your account, on any device.</span></label>':''}`:''}<label class="rad"><input type="radio" name="nWhere" value="device"${cloud?'':' checked'}><span><b>This device</b>Stays in this browser. Works without signing in.</span></label></fieldset>`}
 function openEvents(){const evs=[...S.events.values()].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||b.created-a.created),cp=(curEv()||{}).program||'V5RC';
- sheet(`<h2 id="sheetTitle">Events</h2><div class="evlist">${evs.map(e=>`<button class="evitem${e.id===S.cur?' cur':''}" data-act="pickEv" data-id="${esc(e.id)}"><b>${esc(e.name)}</b><span>${PROG[e.program].label} · ${fmtD(e.date)} · ${WL[e.where]}</span></button>`).join('')||'<p class="none">No events yet.</p>'}</div>
- <h3>New event</h3><div class="actions" style="margin:0 0 6px"><button type="button" class="primary" data-act="reOpen">Load from RobotEvents</button></div><p class="hint">Or set one up by hand. That works for any event, including scrimmages, practice nights and league sessions with no RobotEvents listing.</p>
- <form id="newEv" class="grid2"><label>Name<input id="nName" required maxlength="80" placeholder="Saturday scrimmage"></label><label>Program<select id="nProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===cp?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="nDate" type="date" value="${today()}"></label><label>RobotEvents SKU <span class="opt">optional</span><input id="nSku" maxlength="40"></label>
+ sheet(`<h2 id="sheetTitle">Events</h2>${evs.length?'<h3>Your events</h3>':''}<div class="evlist">${evs.map(e=>`<button class="evitem${e.id===S.cur?' cur':''}" data-act="pickEv" data-id="${esc(e.id)}"><b>${esc(e.name)}</b><span>${PROG[e.program].label} · ${fmtD(e.date)} · ${WL[e.where]}</span></button>`).join('')}</div>
+ <h3>RobotEvents</h3><div id="reBrowse"></div>
+ <details class="adv"><summary>Set up an event by hand</summary><p class="hint">For scrimmages, practice nights, league sessions and anything not on RobotEvents.</p><form id="newEv" class="grid2"><label>Name<input id="nName" required maxlength="80" placeholder="Saturday scrimmage"></label><label>Program<select id="nProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===cp?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="nDate" type="date" value="${today()}"></label><label>RobotEvents SKU <span class="opt">optional</span><input id="nSku" maxlength="40"></label>
  ${whereRadios()}
- <p class="err" id="nErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary">Create event</button></div></form>`,c=>{
+ <p class="err" id="nErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary">Create event</button></div></form></details>`,c=>{mountBrowse(c.querySelector('#reBrowse'));
   c.querySelector('#newEv').onsubmit=s=>{s.preventDefault();const name=c.querySelector('#nName').value.trim();if(!name){c.querySelector('#nErr').textContent='Give the event a name.';return}
    const where=(c.querySelector('input[name=nWhere]:checked')||{}).value||'device';const ev=cleanEvent({name,program:c.querySelector('#nProg').value,date:c.querySelector('#nDate').value,sku:c.querySelector('#nSku').value,created:Date.now()},uid(),where);
    persistEvent(ev);S.tab='event';prefs.tab='event';setCur(ev.id);closeSheet();toast('Event created. Add teams and a schedule, or start logging.')}})}
@@ -596,16 +600,11 @@ function openRE(){
    if(!sku){q('#reErr').textContent='Enter a SKU like RE-V5RC-26-1234, or paste the event’s RobotEvents link.';return}
    const b=q('#reFind');b.disabled=true;b.textContent='Looking up…';
    try{const e=await reFind(sku),prog=reProg(e.program),divs=reDivs(e),loc=e.location||{},place=[loc.venue,loc.city,loc.region].map(x=>str(x,60)).filter(Boolean).join(', '),dup=[...S.events.values()].find(x=>x.sku===sku);
-    q('#reOut').innerHTML=`<div class="reev"><b>${esc(str(e.name,120))}</b><span>${esc(prog?PROG[prog].long:str(e.program&&e.program.name,60))} · ${esc(fmtD(str(e.start,10)))}${place?' · '+esc(place):''}</span></div>`+(!prog?'<p class="err">This app handles V5RC, VEX U and VIQRC events.</p>':`${divs.length>1?`<label>Division<select id="reDiv">${divs.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select></label>`:''}${whereRadios()}${dup?`<p class="hint">You already have an event with this SKU: ${esc(dup.name)}. Use Update from RobotEvents in its Event tab to refresh it.</p>`:''}<div class="actions"><button type="button" class="primary" id="reMake">Create event with its teams and schedule</button></div>`);
+    q('#reOut').innerHTML=`<div class="reev"><b>${esc(str(e.name,120))}</b><span>${esc(prog?PROG[prog].long:str(e.program&&e.program.name,60))} · ${esc(fmtD(str(e.start,10)))}${place?' · '+esc(place):''}</span></div>`+(!prog?'<p class="err">This app handles V5RC, VEX U and VIQRC events.</p>':`${divs.length>1?`<label>Division<select id="reDiv">${divs.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select></label>`:''}${dup?`<p class="hint">You already have an event with this SKU: ${esc(dup.name)}. Use Update from RobotEvents in its Event tab to refresh it.</p>`:''}<div class="actions"><button type="button" class="primary" id="reMake">Create event with its teams and schedule</button></div>`);
     const mk=q('#reMake');if(mk)mk.onclick=()=>reCreate(c,{e,sku,prog,divs});
    }catch(err){q('#reErr').textContent=reMsg(err)}finally{b.disabled=false;b.textContent='Find event'}}})}
-async function reCreate(c,f){const q=s=>c.querySelector(s),b=q('#reMake'),label=b.textContent;b.disabled=true;b.textContent='Loading teams and schedule…';
- const div=q('#reDiv')?+q('#reDiv').value:(f.divs[0]||{}).id||0,dv=f.divs.find(d=>d.id===div),where=(q('input[name=nWhere]:checked')||{}).value||'device';
- try{const teams=await reTeams(f.e.id),matches=await reSched(f.e.id,div,f.prog);
-  const ev=cleanEvent({name:str(f.e.name,80-(f.divs.length>1&&dv?dv.name.length+3:0))+(f.divs.length>1&&dv?' · '+dv.name:''),program:f.prog,date:str(f.e.start,10),sku:f.sku,re:{id:f.e.id,div,divs:f.divs},teams,matches:matches.map(m=>({...m,id:uid()})),created:Date.now()},uid(),where);
-  persistEvent(ev);S.tab=matches.length?'matches':'teams';prefs.tab=S.tab;setCur(ev.id);closeSheet();
-  toast(`Loaded ${teams.length} team${teams.length===1?'':'s'} and ${matches.length} match${matches.length===1?'':'es'}${matches.length?'':'. The schedule isn’t posted yet'}`)}
- catch(err){q('#reErr').textContent=reMsg(err);b.disabled=false;b.textContent=label}}
+function reCreate(c,f){const q=s=>c.querySelector(s),div=q('#reDiv')?+q('#reDiv').value:(f.divs[0]||{}).id||0;
+ reImport({id:num(f.e.id),sku:f.sku,name:str(f.e.name,120),start:str(f.e.start,10),divs:f.divs},f.prog,div,q('#reMake'),t=>{q('#reErr').textContent=t})}
 function askToken(next){sheet(`<h2 id="sheetTitle">RobotEvents API token</h2>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenField()}<p class="err" id="tErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button type="button" class="primary" id="tSave">Save and continue</button></div>`,c=>{
  c.querySelector('#tSave').onclick=()=>{const i=c.querySelector('#reTok');if(!i||!i.value.trim()){c.querySelector('#tErr').textContent='Paste your token first.';return}keepToken(c);closeSheet();shellKey='';renderAll();next()}})}
 async function reUpdate(){const ev=curEv();if(!ev)return;if(!writable(ev))return toast('This event is view-only for you');if(!ev.sku)return toast('Add the RobotEvents SKU in the Event tab first');if(!reTok())return askToken(reUpdate);
@@ -618,6 +617,59 @@ async function reUpdate(){const ev=curEv();if(!ev)return;if(!writable(ev))return
   const before=new Set(ev.matches.map(m=>m.label));applySched(ev,L,false);const nm=L.filter(m=>!before.has(m.label)).length;
   ev.re={id,div,divs};persistEvent(ev);say(`Up to date: ${nt} new team${nt===1?'':'s'} and ${nm} new match${nm===1?'':'es'}. The schedule has ${L.length} match${L.length===1?'':'es'}${L.length?'':' (not posted yet)'}.`)}
  catch(err){say(reMsg(err))}}
+
+const RE_PIDS={V5RC:1,VURC:4,VIQRC:41};
+const dayStr=t=>new Date(t-new Date(t).getTimezoneOffset()*6e4).toISOString().slice(0,10);
+async function reSeasons(prog){const key='rl.reSeason.'+prog,c=LS.get(key,null);if(c&&Array.isArray(c.ids)&&c.ids.length&&Date.now()-c.at<864e5)return c.ids;
+ const ids=(await reGet('/seasons',`program%5B%5D=${RE_PIDS[prog]}&active=true`)).map(x=>num(x&&x.id)).filter(Boolean);if(!ids.length)throw new ReErr('notfound');LS.set(key,{ids,at:Date.now()});return ids}
+async function reList(prog,force){const key='rl.reList.'+prog,c=LS.get(key,null);if(!force&&c&&Array.isArray(c.list)&&Date.now()-c.at<6*36e5)return c;
+ const ids=await reSeasons(prog),now=Date.now(),from=new Date(now-4*864e5),to=new Date(now+75*864e5),sq=ids.map(id=>'season%5B%5D='+id).join('&');
+ let L;try{L=await reGet('/events',`${sq}&start=${encodeURIComponent(from.toISOString())}&end=${encodeURIComponent(to.toISOString())}`)}catch(e){if(e&&e.k==='http')L=await reGet('/events',sq);else throw e}
+ const lo=dayStr(+from),hi=dayStr(+to);
+ const list=L.map(e=>({id:num(e&&e.id),sku:str(e&&e.sku,40).toUpperCase(),name:str(e&&e.name,120),start:str(e&&e.start,10),end:str(e&&e.end,10),city:str(e&&e.location&&e.location.city,60),region:str(e&&e.location&&e.location.region,60),divs:reDivs(e||{})}))
+  .filter(e=>e.id&&e.sku&&e.start&&(e.end||e.start)>=lo&&e.start<=hi).sort((a,b)=>a.start.localeCompare(b.start)||a.name.localeCompare(b.name));
+ const out={at:Date.now(),list};LS.set(key,out);return out}
+function fmtRange(a,b){const d=x=>new Date(x+'T12:00:00'),o={month:'short',day:'numeric'};if(!b||b===a)return d(a).toLocaleDateString([],{weekday:'short',...o});return d(a).toLocaleDateString([],o)+' – '+d(b).toLocaleDateString([],o)}
+function mountBrowse(el){if(!el)return;
+ if(inClaude){el.innerHTML=`<p class="note">${CLAUDE_NOTE}</p>`;return}
+ if(!reTok()){el.innerHTML=`<p class="hint">This season’s events show up here automatically once this device has your RobotEvents API token.</p>${tokenField()}<p class="err" id="bErr" role="alert"></p><div class="actions"><button type="button" class="primary" id="bTok">Show events</button></div>`;
+  el.querySelector('#bTok').onclick=()=>{keepToken(el);if(!reTok()){el.querySelector('#bErr').textContent='Paste your token first.';return}mountBrowse(el)};return}
+ let prog=PROG[prefs.reProg]?prefs.reProg:((curEv()&&!curEv().sample&&curEv().program)||'V5RC'),data=null,limit=60;
+ el.innerHTML=`<div class="seg" role="group" aria-label="Program">${Object.keys(PROG).map(k=>`<button type="button" data-p="${k}" aria-pressed="${k===prog}">${PROG[k].label}</button>`).join('')}</div>
+  <div class="tools" style="margin:8px 0 0"><input id="bq" type="search" placeholder="Search name, city or SKU" autocomplete="off" aria-label="Search events"><select id="breg" aria-label="State or region"><option value="">All regions</option></select></div>
+  <p class="hint" id="bStat" role="status">Loading events…</p><div id="bList"></div>
+  <div class="actions"><button type="button" class="linkb" id="bRef">Refresh list</button><span class="sp"></span><button type="button" class="linkb" data-act="reOpen">Enter a SKU instead</button></div>`;
+ const q=s=>el.querySelector(s),stat=t=>{q('#bStat').textContent=t};
+ const row=e=>{const have=[...S.events.values()].some(x=>x.sku===e.sku);return `<button type="button" class="evitem" data-sku="${esc(e.sku)}"><b>${esc(e.name)}</b><span>${esc(fmtRange(e.start,e.end))}${e.city||e.region?' · '+esc([e.city,e.region].filter(Boolean).join(', ')):''}${e.divs.length>1?` · ${e.divs.length} divisions`:''}${have?' · already loaded':''}</span></button>`};
+ const draw=()=>{if(!data)return;const t=dayStr(Date.now()),wk=dayStr(Date.now()+7*864e5),qq=q('#bq').value.trim().toLowerCase(),rg=q('#breg').value;
+  const L=data.list.filter(e=>(!rg||e.region===rg)&&(!qq||(e.name+' '+e.city+' '+e.region+' '+e.sku).toLowerCase().includes(qq)));
+  const G=[['Happening now',L.filter(e=>e.start<=t)],['Next 7 days',L.filter(e=>e.start>t&&e.start<=wk)],['Coming up',L.filter(e=>e.start>wk)]];
+  let n=0,h='';for(const[g,arr2]of G){if(!arr2.length||n>=limit)continue;const part=arr2.slice(0,limit-n);n+=part.length;h+=`<div class="grp">${g}</div><div class="evlist">${part.map(row).join('')}</div>`}
+  if(L.length>n)h+=`<div class="actions"><button type="button" id="bMore">Show ${Math.min(60,L.length-n)} more</button></div>`;
+  q('#bList').innerHTML=h||'<p class="none">No events match. Try another region or search, or enter a SKU.</p>';
+  const ago=Math.round((Date.now()-data.at)/6e4);stat(`${L.length} ${PROG[prog].label} event${L.length===1?'':'s'} from the last few days through the next 10 weeks · updated ${ago<1?'just now':ago<60?ago+' min ago':Math.round(ago/60)+' h ago'}`);
+  const m=q('#bMore');if(m)m.onclick=()=>{limit+=60;draw()}};
+ const load=async force=>{stat('Loading events from RobotEvents…');q('#bList').innerHTML='';data=null;
+  try{data=await reList(prog,force);const regs=[...new Set(data.list.map(e=>e.region).filter(Boolean))].sort();const sel=q('#breg');sel.innerHTML='<option value="">All regions</option>'+regs.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');sel.value=regs.includes(prefs.reReg)?prefs.reReg:'';limit=60;draw()}
+  catch(err){stat(reMsg(err))}};
+ el.addEventListener('click',async ev2=>{const p=ev2.target.closest('[data-p]');if(p){prog=p.dataset.p;prefs.reProg=prog;savePrefs();el.querySelectorAll('[data-p]').forEach(b=>b.setAttribute('aria-pressed',String(b===p)));load(false);return}
+  const r=ev2.target.closest('.evitem[data-sku]');if(r&&data){const e=data.list.find(x=>x.sku===r.dataset.sku);if(e)pickRE(e,prog,r,stat)}
+  const d=ev2.target.closest('[data-div]');if(d&&data){const e=data.list.find(x=>x.sku===d.dataset.sku);if(e)reImport(e,prog,+d.dataset.div,d,stat)}});
+ q('#bq').addEventListener('input',()=>{limit=60;draw()});
+ q('#breg').addEventListener('change',()=>{prefs.reReg=q('#breg').value;savePrefs();limit=60;draw()});
+ q('#bRef').onclick=()=>load(true);load(false)}
+function pickRE(e,prog,rowEl,stat){const have=[...S.events.values()].filter(x=>x.sku===e.sku);
+ if(e.divs.length>1){const nx=rowEl.nextElementSibling;if(nx&&nx.classList.contains('divs')){nx.remove();return}
+  rowEl.insertAdjacentHTML('afterend',`<div class="divs" role="group" aria-label="Division">${e.divs.map(d=>{const h=have.find(x=>x.re&&x.re.div===d.id);return `<button type="button" class="chip" data-sku="${esc(e.sku)}" data-div="${d.id}"${h?` data-have="${esc(h.id)}"`:''}>${esc(d.name)}${h?' (open)':''}</button>`}).join('')}</div>`);return}
+ if(have.length){setCur(have[0].id);closeSheet();toast('Opened '+have[0].name);return}
+ reImport(e,prog,(e.divs[0]||{}).id||0,rowEl,stat)}
+async function reImport(e,prog,div,btn,stat){if(btn&&btn.dataset.have){setCur(btn.dataset.have);closeSheet();return}if(btn&&btn.disabled)return;
+ const dv=e.divs.find(d=>d.id===div),many=e.divs.length>1&&dv;if(btn)btn.disabled=true;if(stat)stat(`Loading ${e.name}…`);
+ try{const teams=await reTeams(e.id),matches=await reSched(e.id,div,prog),where=S.db&&S.canWrite?'shared':'device';
+  const ev=cleanEvent({name:str(e.name,80-(many?dv.name.length+3:0))+(many?' · '+dv.name:''),program:prog,date:str(e.start,10),sku:e.sku,re:{id:e.id,div,divs:e.divs},teams,matches:matches.map(m=>({...m,id:uid()})),created:Date.now()},uid(),where);
+  persistEvent(ev);S.tab=matches.length?'matches':'teams';prefs.tab=S.tab;setCur(ev.id);closeSheet();
+  toast(`Loaded ${teams.length} team${teams.length===1?'':'s'} and ${matches.length} match${matches.length===1?'':'es'}${matches.length?'':'. The schedule isn’t posted yet'}`)}
+ catch(err){if(btn)btn.disabled=false;const m=reMsg(err);if(stat)stat(m);else toast(m)}}
 
 /* ---------- events wiring ---------- */
 const A={
@@ -659,6 +711,8 @@ addEventListener('online',()=>{S.offline=false;renderSync()});addEventListener('
 
 /* ---------- boot ---------- */
 rebuildEvents();renderAll();
+if(!inClaude&&[...S.events.values()].every(e=>e.sample)&&!sessionFlag())setTimeout(()=>{if($('#sheet').hidden)openEvents()},250);
+function sessionFlag(){try{if(sessionStorage.getItem('rl.picked'))return true;sessionStorage.setItem('rl.picked','1')}catch(e){}return false}
 const giveUp=setTimeout(()=>{if(S.waitCloud){S.waitCloud=false;rebuildEvents();shellKey='';renderAll()}},10000);
 function cloudReady(){if(S.answered.shared&&(S.answered.mine||!S.uid)&&S.waitCloud){S.waitCloud=false;clearTimeout(giveUp)}rebuildEvents();renderAll()}
 function watchList(where,path){S.db.collection(path).onSnapshot(snap=>{const m=new Map();for(const d of snap.docs){const x=d.data();if(x&&x.kind==='event')m.set(d.id,cleanEvent(x,d.id,where))}

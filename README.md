@@ -16,7 +16,11 @@ It is a single self-contained `index.html` with no build step.
 
 ## Loading events from RobotEvents
 
-Choose **Load from RobotEvents** in the event menu, enter your RobotEvents API token and the event's SKU (or paste its RobotEvents link), pick a division, and the app creates the event with its team list and match schedule. **Update from RobotEvents** in the Event tab pulls the latest teams and schedule later (for example once the schedule is posted, or after alliance selection) without touching logged entries.
+Open the event menu (tap the event name at the top). Once the device has a RobotEvents API token, it lists this season's events automatically: happening now, the next 7 days, and the following weeks (from a few days ago through about 10 weeks ahead). Switch between V5RC, VEX U and VIQRC, search by name, city or SKU, and filter by state or region (remembered on the device). Tap an event to load its team list and match schedule; events with several divisions ask which division. Events you already loaded open instead of loading twice. The list is cached on the device for 6 hours; **Refresh list** fetches it again. **Enter a SKU instead** handles anything outside that window.
+
+On first use, the event menu opens by itself so you can pick an event.
+
+**Update from RobotEvents** in the Event tab pulls the latest teams and schedule later (for example once the schedule is posted, or after alliance selection) without touching logged entries.
 
 - Get a token at <https://www.robotevents.com/api/v2> under Request Access.
 - The token is saved only in the browser's `localStorage` on that device and is sent only to the RobotEvents API. It is never stored in shared events, backups, or this repository.
