@@ -374,7 +374,7 @@ const emptyBox=(h,p,btn,tab)=>`<div class="empty"><h2>${h}</h2><p>${p}</p>${btn?
 const V={};
 V.matches={
  shell:ev=>`${ev.sample?'<p class="sample">Example event with sample entries. Pick a real event from the event menu at the top.</p>':''}<div class="tools"><div class="seg" role="group" aria-label="Round">${[['all','All'],['Q','Quals'],['E','Elims'],['P','Practice']].map(([k,l])=>`<button data-act="mround" data-k="${k}" aria-pressed="${S.mround===k}">${l}</button>`).join('')}</div><input id="mq" type="search" placeholder="Find a team or match" value="${esc(S.mq)}" aria-label="Find a team or match" autocomplete="off"></div><div id="body"></div>`,
- body:ev=>{if(!ev.matches.length)return ev.sku?`<div class="empty"><h2>No schedule yet</h2><p>Pull it from RobotEvents once it’s posted, paste it in the Event tab, or log by team with + Entry.</p><div class="actions"><button class="primary" data-act="reUpdate">Load schedule from RobotEvents</button><button data-act="tab" data-tab="event">Paste a schedule</button></div></div>`:emptyBox('No schedule yet','Load an event from RobotEvents, paste your match list in the Event tab, or log by team with + Entry. A schedule is optional.','Add a schedule','event');
+ body:ev=>{if(!ev.matches.length)return ev.sku?`<div class="empty"><h2>No schedule yet</h2><p>Pull it from VEX Events once it’s posted, paste it in the Event tab, or log by team with + Entry.</p><div class="actions"><button class="primary" data-act="reUpdate">Load schedule from VEX Events</button><button data-act="tab" data-tab="event">Paste a schedule</button></div></div>`:emptyBox('No schedule yet','Load an event from VEX Events, paste your match list in the Event tab, or log by team with + Entry. A schedule is optional.','Add a schedule','event');
   const q=S.mq.trim().toUpperCase(),ST=stats();
   const ms=ev.matches.filter(m=>(S.mround==='all'||roundOf(m.label)===S.mround)&&(!q||m.label.startsWith(q)||m.red.concat(m.blue).some(t=>t.includes(q))));
   return ms.length?ms.map(m=>matchRow(ev,m,ST)).join(''):`<p class="none">No match fits “${esc(S.mq)}”.</p>`}};
@@ -427,8 +427,8 @@ V.rules={
 function whereText(ev){return ev.where==='device'?(LS.ok?'Kept in this browser on this device only. Export a backup before you clear the browser or switch devices.':'This browser isn’t keeping data. Export a backup before you close the page.'):ev.where==='mine'?'Saved to your account. Only you can see it, on any device where you open this page.':'Shared: anyone who can open this page sees it, and people with edit access can log entries. Every referee’s entries sync live.'}
 V.event={
  shell:ev=>{const P=PROG[ev.program],ex=P.blue?(P.red===2?'Q1  9:00 AM  1121A 4512X  3310C 7110Z':'Q1  9:00 AM  UCF1  BLRS'):'Q1  9:00 AM  1121A 4512X';
-  return `<section class="card"><h2>Event</h2><form id="evForm" class="grid2"><label>Name<input id="eName" value="${esc(ev.name)}" maxlength="80" required></label><label>Program<select id="eProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===ev.program?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="eDate" type="date" value="${esc(ev.date)}"></label><label>RobotEvents SKU <span class="opt">optional</span><input id="eSku" value="${esc(ev.sku)}" maxlength="40" placeholder="Leave blank for scrimmages"></label><div class="actions"><button class="primary">Save event</button></div></form><p class="hint">${whereText(ev)}</p></section>
-  <section class="card"><h2>RobotEvents</h2>${ev.sku?`<p class="hint">Linked to ${esc(ev.sku)}. Pull the latest teams and schedule, for example once the schedule is posted or after alliance selection. Entries you’ve logged are never changed.</p>${ev.re&&ev.re.divs.length>1?`<label>Division<select id="reDiv">${ev.re.divs.map(d=>`<option value="${d.id}"${d.id===ev.re.div?' selected':''}>${esc(d.name)}</option>`).join('')}</select></label>`:''}<div class="actions"><button class="primary" data-act="reUpdate">Update from RobotEvents</button></div>`:`<p class="hint">Add the event’s RobotEvents SKU above, then pull its teams and schedule from here.</p><div class="actions"><button data-act="events">Pick a RobotEvents event</button></div>`}<p class="hint" id="reMsg" role="status"></p>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenLine()}</section>
+  return `<section class="card"><h2>Event</h2><form id="evForm" class="grid2"><label>Name<input id="eName" value="${esc(ev.name)}" maxlength="80" required></label><label>Program<select id="eProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===ev.program?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="eDate" type="date" value="${esc(ev.date)}"></label><label>VEX Events SKU <span class="opt">optional</span><input id="eSku" value="${esc(ev.sku)}" maxlength="40" placeholder="Leave blank for scrimmages"></label><div class="actions"><button class="primary">Save event</button></div></form><p class="hint">${whereText(ev)}</p></section>
+  <section class="card"><h2>VEX Events</h2>${ev.sku?`<p class="hint">Linked to ${esc(ev.sku)}. Pull the latest teams and schedule, for example once the schedule is posted or after alliance selection. Entries you’ve logged are never changed.</p>${ev.re&&ev.re.divs.length>1?`<label>Division<select id="reDiv">${ev.re.divs.map(d=>`<option value="${d.id}"${d.id===ev.re.div?' selected':''}>${esc(d.name)}</option>`).join('')}</select></label>`:''}<div class="actions"><button class="primary" data-act="reUpdate">Update from VEX Events</button></div>`:`<p class="hint">Add the event’s VEX Events SKU above, then pull its teams and schedule from here.</p><div class="actions"><button data-act="events">Pick a VEX Events event</button></div>`}<p class="hint" id="reMsg" role="status"></p>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenLine()}</section>
   <section class="card"><h2>Your name on entries</h2><input id="eRef" value="${esc(prefs.ref||'')}" placeholder="e.g. Sam, Field 2" maxlength="40" aria-label="Your name on entries"><p class="hint">Kept on this device and added to each entry you log, so co-referees can tell who called what.</p></section>
   <section class="card"><h2>Teams <span class="count" id="eTeamCount"></span></h2><p class="hint">Paste team numbers: one per line with an optional team name, or all on one line separated by spaces or commas.</p><textarea id="eTeams" rows="4" placeholder="1121A Gear Grinders&#10;3310C&#10;4512X"></textarea><div class="actions"><button class="primary" data-act="addTeams">Add teams</button></div><div id="eTeamList" class="chips" style="margin-top:12px"></div></section>
   <section class="card"><h2>Match schedule <span class="count" id="eMatchCount"></span></h2><p class="hint">One match per line: the match name, an optional time, then ${P.blue?`${P.red===2?'two red and two blue teams':'the red team and the blue team'}`:'the two teamwork teams'}. Commas, tabs or spaces all work, so you can paste rows from a spreadsheet or the Tournament Manager schedule.</p><pre class="ex">${esc(ex)}</pre><textarea id="eSched" rows="5" placeholder="${esc(ex)}"></textarea><div class="actions"><button class="primary" data-act="schedAdd">Add matches</button><button data-act="schedRep">Replace schedule</button><button class="danger" data-act="schedClr">Clear schedule</button></div><p class="hint" id="eSchedMsg"></p></section>
@@ -448,7 +448,7 @@ function renderHeader(){const ev=curEv();$('#evName').textContent=ev?ev.name:(S.
 function renderBody(){const ev=curEv(),v=V[S.tab],b=$('#body');if(!ev)return;if(b&&v.body)b.innerHTML=v.body(ev);if(v.after)v.after(ev)}
 function renderAll(){renderHeader();const ev=curEv(),key=S.tab+'|'+(ev?ev.where+ev.id+ev.program:'none');
  if(key!==shellKey){shellKey=key;const m=$('#main');
-  if(!ev)m.innerHTML=S.waitCloud?'<p class="none">Loading your event…</p>':'<div class="empty"><h2>No events yet</h2><p>Create an event for a tournament, scrimmage or practice night. No RobotEvents listing needed.</p><button class="primary" data-act="events">Create an event</button></div>';
+  if(!ev)m.innerHTML=S.waitCloud?'<p class="none">Loading your event…</p>':'<div class="empty"><h2>No events yet</h2><p>Create an event for a tournament, scrimmage or practice night. No VEX Events listing needed.</p><button class="primary" data-act="events">Create an event</button></div>';
   else{m.innerHTML=V[S.tab].shell(ev);if(V[S.tab].mount)V[S.tab].mount(ev)}}
  renderBody()}
 function setCur(id){const e=S.events.get(id);if(!e)return;S.cur=id;S.waitCloud=false;prefs.cur=id;prefs.curWhere=e.where;savePrefs();S.open={match:null,team:null};ensureBound();shellKey='';renderAll()}
@@ -508,8 +508,8 @@ function setAuton(mid,patch){const ev=curEv();if(!writable(ev)){toast('This even
 function whereRadios(){const cloud=!!S.db&&S.canWrite;return `<fieldset class="where"><legend>Keep it</legend>${cloud?`<label class="rad"><input type="radio" name="nWhere" value="shared" checked><span><b>Shared</b>Anyone you share this page with sees it live. People with edit access can log entries.</span></label>${S.uid?'<label class="rad"><input type="radio" name="nWhere" value="mine"><span><b>Only you</b>Saved to your account, on any device.</span></label>':''}`:''}<label class="rad"><input type="radio" name="nWhere" value="device"${cloud?'':' checked'}><span><b>This device</b>Stays in this browser. Works without signing in.</span></label></fieldset>`}
 function openEvents(){const evs=[...S.events.values()].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||b.created-a.created),cp=(curEv()||{}).program||'V5RC';
  sheet(`<h2 id="sheetTitle">Events</h2>${evs.length?'<h3>Your events</h3>':''}<div class="evlist">${evs.map(e=>`<button class="evitem${e.id===S.cur?' cur':''}" data-act="pickEv" data-id="${esc(e.id)}"><b>${esc(e.name)}</b><span>${PROG[e.program].label} · ${fmtD(e.date)} · ${WL[e.where]}</span></button>`).join('')}</div>
- <h3>RobotEvents</h3><div id="reBrowse"></div>
- <details class="adv"><summary>Set up an event by hand</summary><p class="hint">For scrimmages, practice nights, league sessions and anything not on RobotEvents.</p><form id="newEv" class="grid2"><label>Name<input id="nName" required maxlength="80" placeholder="Saturday scrimmage"></label><label>Program<select id="nProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===cp?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="nDate" type="date" value="${today()}"></label><label>RobotEvents SKU <span class="opt">optional</span><input id="nSku" maxlength="40"></label>
+ <h3>VEX Events</h3><div id="reBrowse"></div>
+ <details class="adv"><summary>Set up an event by hand</summary><p class="hint">For scrimmages, practice nights, league sessions and anything not on VEX Events.</p><form id="newEv" class="grid2"><label>Name<input id="nName" required maxlength="80" placeholder="Saturday scrimmage"></label><label>Program<select id="nProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===cp?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="nDate" type="date" value="${today()}"></label><label>VEX Events SKU <span class="opt">optional</span><input id="nSku" maxlength="40"></label>
  ${whereRadios()}
  <p class="err" id="nErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary">Create event</button></div></form></details>`,c=>{mountBrowse(c.querySelector('#reBrowse'));
   c.querySelector('#newEv').onsubmit=s=>{s.preventDefault();const name=c.querySelector('#nName').value.trim();if(!name){c.querySelector('#nErr').textContent='Give the event a name.';return}
@@ -556,24 +556,30 @@ function merge(ev,d){const inc=cleanEvent(d.event,'import',ev.where);let nt=0,nm
   persistEntry(e,true);if(e.kind==='entry')ne++}
  renderAll();return`Merged ${ne} entr${ne===1?'y':'ies'}, ${nm} match${nm===1?'':'es'} and ${nt} team${nt===1?'':'s'}`}
 
-/* ---------- RobotEvents ---------- */
-const RE_BASE='https://www.robotevents.com/api/v2';
+/* ---------- VEX Events ---------- */
+const RE_BASE='https://events.vex.com/api/v2';
 const inClaude=!!(window.claude&&window.claude.use);
-const CLAUDE_NOTE='This copy runs inside Claude, which blocks requests to other websites, so it can’t reach RobotEvents. Load the event in your GitHub copy of the app, export a backup there, and import it here.';
+const CLAUDE_NOTE='This copy runs inside Claude, which blocks requests to other websites, so it can’t reach VEX Events. Load the event in your GitHub copy of the app, export a backup there, and import it here.';
 const savedTok=()=>{const t=LS.get('rl.reToken','');return typeof t==='string'?t:''};
-const builtinTok=()=>{const c=window.REFLOG_CONFIG;return c&&typeof c.robotEventsToken==='string'?c.robotEventsToken.trim():''};
+const builtinTok=()=>{const c=window.REFLOG_CONFIG;const t=c&&(c.eventsToken||c.robotEventsToken);return typeof t==='string'?t.trim():''};
 const reTok=()=>savedTok()||builtinTok();
 const reBase=()=>{const b=LS.get('rl.reBase','');return(typeof b==='string'&&/^https:\/\//.test(b)?b:RE_BASE).replace(/\/+$/,'')};
 class ReErr extends Error{constructor(k,s){super(k);this.k=k;this.s=s}}
-function reMsg(e){const k=e&&e.k;return k==='blocked'?(inClaude?CLAUDE_NOTE:'The browser couldn’t reach RobotEvents. You may be offline, or RobotEvents may not accept requests from web pages. If so, set a relay address under Advanced, or paste the teams and schedule in the Event tab.'):k==='auth'?'RobotEvents didn’t accept the API token. Check it, or request a new one.':k==='rate'?'RobotEvents is limiting requests right now. Wait a minute and try again.':k==='notfound'?'RobotEvents has no event with that SKU.':k==='notoken'?'Add your RobotEvents API token first.':`RobotEvents answered with an error${e&&e.s?' ('+e.s+')':''}. Try again in a moment.`}
+function reMsg(e){const k=e&&e.k;return k==='blocked'?(inClaude?CLAUDE_NOTE:'The browser couldn’t reach VEX Events. You may be offline, or VEX Events may not accept requests from web pages. If so, set a relay address under Advanced, or paste the teams and schedule in the Event tab.'):k==='auth'?'VEX Events didn’t accept the API token. Check it, or request a new one.':k==='rate'?'VEX Events is limiting requests right now. Wait a minute and try again.':k==='notfound'?'VEX Events has no event with that SKU.':k==='notoken'?'Add your VEX Events API token first.':`VEX Events answered with an error${e&&e.s?' ('+e.s+')':''}. Try again in a moment.`}
 async function reGet(path,query){const tok=reTok();if(!tok)throw new ReErr('notoken');const out=[];
  for(let page=1;page<=40;page++){let r;try{r=await fetch(`${reBase()}${path}?${query?query+'&':''}per_page=250&page=${page}`,{headers:{Authorization:'Bearer '+tok,Accept:'application/json'}})}catch(e){throw new ReErr('blocked')}
   if(r.status===401||r.status===403)throw new ReErr('auth',r.status);if(r.status===429)throw new ReErr('rate',429);if(r.status===404)throw new ReErr('notfound',404);if(!r.ok)throw new ReErr('http',r.status);
   let j;try{j=await r.json()}catch(e){throw new ReErr('http','unreadable reply')}
   out.push(...arr(j&&j.data));const m=j&&j.meta;if(!m||!(+m.current_page<+m.last_page))break}
  return out}
-const skuOf=s=>{const m=/RE-[A-Z0-9]+-\d{2}-\d{1,6}/i.exec(String(s||''));return m?m[0].toUpperCase():''};
-function reProg(p){const c=String(p&&p.code||'').toUpperCase(),id=p&&+p.id;return c==='V5RC'||c==='VRC'||id===1?'V5RC':c==='VIQRC'||c==='VIQC'||id===41?'VIQRC':c==='VURC'||c==='VEXU'||id===4?'VURC':''}
+const skuOf=s=>{const m=/\b(?:VE|RE)-[A-Z0-9]+-\d{2}-\d{1,8}\b/i.exec(String(s||''));return m?m[0].toUpperCase():''};
+function reProg(p,noId){const c=String(p&&(p.code||p.abbr)||'').toUpperCase().replace(/[\s-]/g,''),n=String(p&&p.name||''),id=p&&+p.id;
+ if(['V5RC','VRC','V5'].includes(c))return'V5RC';if(['VIQRC','VIQC','VIQ','IQ'].includes(c))return'VIQRC';if(['VURC','VEXU','VU'].includes(c))return'VURC';
+ if(/\bVEX\s*U\b/i.test(n))return'VURC';if(/\bIQ\b/i.test(n)&&/compet/i.test(n))return'VIQRC';if(/\bV5\b/i.test(n)&&/compet/i.test(n))return'V5RC';
+ return noId?'':id===1?'V5RC':id===41?'VIQRC':id===4?'VURC':''}
+async function reProgId(prog){const c=LS.get('rl.veProg',null);let map=c&&c.map&&Date.now()-c.at<7*864e5?c.map:null;
+ if(!map){try{map={};for(const p of await reGet('/programs','')){const k=reProg(p,true);if(k&&!map[k])map[k]=num(p&&p.id)}if(Object.keys(map).length)LS.set('rl.veProg',{map,at:Date.now()})}catch(e){if(e&&['auth','blocked','notoken','rate'].includes(e.k))throw e;map=null}}
+ return(map&&map[prog])||RE_PIDS[prog]}
 const RO={1:0,2:1,9:2,8:3,7:4,6:5,3:6,4:7,5:8,15:8};
 function reLabel(m){const r=+m.round,i=+m.instance||1,n=+m.matchnum||0,pre={3:'QF',4:'SF',5:'F',6:'R16-',7:'R32-',8:'R64-',9:'R128-'}[r];
  if(r===1)return'P'+n;if(r===2)return'Q'+n;if(r===15)return'F'+n;if(pre)return pre+i+'-'+n;
@@ -587,31 +593,31 @@ const reTeams=async id=>(await reGet(`/events/${id}/teams`,'')).map(t=>({num:str
 async function reFind(sku){const e=(await reGet('/events','sku%5B%5D='+encodeURIComponent(sku)))[0];if(!e||!num(e.id))throw new ReErr('notfound');return e}
 const reDivs=e=>arr(e.divisions).map(d=>({id:num(d&&d.id),name:str(d&&d.name,40)||'Division'})).filter(d=>d.id);
 const reSched=(id,div,prog)=>div?reGet(`/events/${id}/divisions/${div}/matches`,'').then(L=>reMatches(L,prog)):Promise.resolve([]);
-const tokenLine=()=>savedTok()?'<p class="hint">RobotEvents API token saved in this browser. <button type="button" class="linkb" data-act="reForget">Remove it</button></p>':'';
-const tokenField=()=>reTok()?tokenLine():'<label>RobotEvents API token<input id="reTok" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your token"></label><p class="hint">Saved only in this browser and sent only to RobotEvents. Get one at <a href="https://www.robotevents.com/api/v2" target="_blank" rel="noopener">robotevents.com/api/v2</a> under Request Access.</p>';
+const tokenLine=()=>savedTok()?'<p class="hint">VEX Events API token saved in this browser. <button type="button" class="linkb" data-act="reForget">Remove it</button></p>':'';
+const tokenField=()=>reTok()?tokenLine():'<label>VEX Events API token<input id="reTok" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your token"></label><p class="hint">Saved only in this browser and sent only to VEX Events. Get one from <a href="https://events.vex.com/api/v2/accessRequest/create" target="_blank" rel="noopener">Request Access</a> on events.vex.com.</p>';
 const keepToken=c=>{const i=c.querySelector('#reTok');if(i&&i.value.trim())LS.set('rl.reToken',i.value.trim().replace(/^Bearer\s+/i,''))};
 function openRE(){
- sheet(`<h2 id="sheetTitle">Load from RobotEvents</h2><p class="hint">Pulls the team list and match schedule for a published event. Your log stays in this app.</p>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenField()}
- <label>Event SKU or RobotEvents link<input id="reSku" placeholder="RE-V5RC-26-1234" autocomplete="off" autocapitalize="characters"></label><div class="actions"><button type="button" class="primary" id="reFind">Find event</button></div>
+ sheet(`<h2 id="sheetTitle">Load from VEX Events</h2><p class="hint">Pulls the team list and match schedule for a published event. Your log stays in this app.</p>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenField()}
+ <label>Event SKU or VEX Events link<input id="reSku" placeholder="VE-V5-26-65904" autocomplete="off" autocapitalize="characters"></label><div class="actions"><button type="button" class="primary" id="reFind">Find event</button></div>
  <p class="err" id="reErr" role="alert"></p><div id="reOut"></div>
- <details class="adv"><summary>Advanced</summary><label>API address<input id="reBase" value="${esc(reBase())}" spellcheck="false"></label><p class="hint">Change this only if you run a relay for the RobotEvents API.</p></details>
+ <details class="adv"><summary>Advanced</summary><label>API address<input id="reBase" value="${esc(reBase())}" spellcheck="false"></label><p class="hint">Change this only if you run a relay for the VEX Events API.</p></details>
  <div class="actions"><span class="sp"></span><button type="button" data-act="close">Close</button></div>`,c=>{
   const q=s=>c.querySelector(s);
   q('#reBase').onchange=()=>{const v=q('#reBase').value.trim();if(!v||v===RE_BASE)LS.del('rl.reBase');else if(/^https:\/\//.test(v))LS.set('rl.reBase',v);else q('#reErr').textContent='The API address must start with https://'};
   q('#reSku').addEventListener('keydown',k=>{if(k.key==='Enter'){k.preventDefault();q('#reFind').click()}});
   q('#reFind').onclick=async()=>{keepToken(c);q('#reErr').textContent='';q('#reOut').innerHTML='';const sku=skuOf(q('#reSku').value);
-   if(!sku){q('#reErr').textContent='Enter a SKU like RE-V5RC-26-1234, or paste the event’s RobotEvents link.';return}
+   if(!sku){q('#reErr').textContent='Enter a SKU like VE-V5-26-65904, or paste the event’s VEX Events link.';return}
    const b=q('#reFind');b.disabled=true;b.textContent='Looking up…';
    try{const e=await reFind(sku),prog=reProg(e.program),divs=reDivs(e),loc=e.location||{},place=[loc.venue,loc.city,loc.region].map(x=>str(x,60)).filter(Boolean).join(', '),dup=[...S.events.values()].find(x=>x.sku===sku);
-    q('#reOut').innerHTML=`<div class="reev"><b>${esc(str(e.name,120))}</b><span>${esc(prog?PROG[prog].long:str(e.program&&e.program.name,60))} · ${esc(fmtD(str(e.start,10)))}${place?' · '+esc(place):''}</span></div>`+(!prog?'<p class="err">This app handles V5RC, VEX U and VIQRC events.</p>':`${divs.length>1?`<label>Division<select id="reDiv">${divs.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select></label>`:''}${dup?`<p class="hint">You already have an event with this SKU: ${esc(dup.name)}. Use Update from RobotEvents in its Event tab to refresh it.</p>`:''}<div class="actions"><button type="button" class="primary" id="reMake">Create event with its teams and schedule</button></div>`);
+    q('#reOut').innerHTML=`<div class="reev"><b>${esc(str(e.name,120))}</b><span>${esc(prog?PROG[prog].long:str(e.program&&e.program.name,60))} · ${esc(fmtD(str(e.start,10)))}${place?' · '+esc(place):''}</span></div>`+(!prog?'<p class="err">This app handles V5RC, VEX U and VIQRC events.</p>':`${divs.length>1?`<label>Division<select id="reDiv">${divs.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select></label>`:''}${dup?`<p class="hint">You already have an event with this SKU: ${esc(dup.name)}. Use Update from VEX Events in its Event tab to refresh it.</p>`:''}<div class="actions"><button type="button" class="primary" id="reMake">Create event with its teams and schedule</button></div>`);
     const mk=q('#reMake');if(mk)mk.onclick=()=>reCreate(c,{e,sku,prog,divs});
    }catch(err){q('#reErr').textContent=reMsg(err)}finally{b.disabled=false;b.textContent='Find event'}}})}
 function reCreate(c,f){const q=s=>c.querySelector(s),div=q('#reDiv')?+q('#reDiv').value:(f.divs[0]||{}).id||0;
  reImport({id:num(f.e.id),sku:f.sku,name:str(f.e.name,120),start:str(f.e.start,10),divs:f.divs},f.prog,div,q('#reMake'),t=>{q('#reErr').textContent=t})}
-function askToken(next){sheet(`<h2 id="sheetTitle">RobotEvents API token</h2>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenField()}<p class="err" id="tErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button type="button" class="primary" id="tSave">Save and continue</button></div>`,c=>{
+function askToken(next){sheet(`<h2 id="sheetTitle">VEX Events API token</h2>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenField()}<p class="err" id="tErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button type="button" class="primary" id="tSave">Save and continue</button></div>`,c=>{
  c.querySelector('#tSave').onclick=()=>{const i=c.querySelector('#reTok');if(!i||!i.value.trim()){c.querySelector('#tErr').textContent='Paste your token first.';return}keepToken(c);closeSheet();shellKey='';renderAll();next()}})}
-async function reUpdate(){const ev=curEv();if(!ev)return;if(!writable(ev))return toast('This event is view-only for you');if(!ev.sku)return toast('Add the RobotEvents SKU in the Event tab first');if(!reTok())return askToken(reUpdate);
- const say=t=>{const m=$('#reMsg');if(m)m.textContent=t;else toast(t)};say('Updating from RobotEvents…');
+async function reUpdate(){const ev=curEv();if(!ev)return;if(!writable(ev))return toast('This event is view-only for you');if(!ev.sku)return toast('Add the VEX Events SKU in the Event tab first');if(!reTok())return askToken(reUpdate);
+ const say=t=>{const m=$('#reMsg');if(m)m.textContent=t;else toast(t)};say('Updating from VEX Events…');
  try{let id=ev.re&&ev.re.id,divs=ev.re?ev.re.divs:[],div=ev.re?ev.re.div:0;
   if(!id){const e=await reFind(ev.sku);id=e.id;divs=reDivs(e);div=(divs[0]||{}).id||0}
   const sel=$('#reDiv');if(sel&&+sel.value)div=+sel.value;
@@ -623,9 +629,9 @@ async function reUpdate(){const ev=curEv();if(!ev)return;if(!writable(ev))return
 
 const RE_PIDS={V5RC:1,VURC:4,VIQRC:41};
 const dayStr=t=>new Date(t-new Date(t).getTimezoneOffset()*6e4).toISOString().slice(0,10);
-async function reSeasons(prog){const key='rl.reSeason.'+prog,c=LS.get(key,null);if(c&&Array.isArray(c.ids)&&c.ids.length&&Date.now()-c.at<864e5)return c.ids;
- const ids=(await reGet('/seasons',`program%5B%5D=${RE_PIDS[prog]}&active=true`)).map(x=>num(x&&x.id)).filter(Boolean);if(!ids.length)throw new ReErr('notfound');LS.set(key,{ids,at:Date.now()});return ids}
-async function reList(prog,force){const key='rl.reList.'+prog,c=LS.get(key,null);if(!force&&c&&Array.isArray(c.list)&&Date.now()-c.at<6*36e5)return c;
+async function reSeasons(prog){const key='rl.veSeason.'+prog,c=LS.get(key,null);if(c&&Array.isArray(c.ids)&&c.ids.length&&Date.now()-c.at<864e5)return c.ids;
+ const ids=(await reGet('/seasons',`program%5B%5D=${await reProgId(prog)}&active=true`)).map(x=>num(x&&x.id)).filter(Boolean);if(!ids.length)throw new ReErr('notfound');LS.set(key,{ids,at:Date.now()});return ids}
+async function reList(prog,force){const key='rl.veList.'+prog,c=LS.get(key,null);if(!force&&c&&Array.isArray(c.list)&&Date.now()-c.at<6*36e5)return c;
  const ids=await reSeasons(prog),now=Date.now(),from=new Date(now-4*864e5),to=new Date(now+75*864e5),sq=ids.map(id=>'season%5B%5D='+id).join('&');
  let L;try{L=await reGet('/events',`${sq}&start=${encodeURIComponent(from.toISOString())}&end=${encodeURIComponent(to.toISOString())}`)}catch(e){if(e&&e.k==='http')L=await reGet('/events',sq);else throw e}
  const lo=dayStr(+from),hi=dayStr(+to);
@@ -635,7 +641,7 @@ async function reList(prog,force){const key='rl.reList.'+prog,c=LS.get(key,null)
 function fmtRange(a,b){const d=x=>new Date(x+'T12:00:00'),o={month:'short',day:'numeric'};if(!b||b===a)return d(a).toLocaleDateString([],{weekday:'short',...o});return d(a).toLocaleDateString([],o)+' – '+d(b).toLocaleDateString([],o)}
 function mountBrowse(el){if(!el)return;
  if(inClaude){el.innerHTML=`<p class="note">${CLAUDE_NOTE}</p>`;return}
- if(!reTok()){el.innerHTML=`<p class="hint">This season’s events show up here automatically once this device has your RobotEvents API token.</p>${tokenField()}<p class="err" id="bErr" role="alert"></p><div class="actions"><button type="button" class="primary" id="bTok">Show events</button></div>`;
+ if(!reTok()){el.innerHTML=`<p class="hint">This season’s events show up here automatically once this device has your VEX Events API token.</p>${tokenField()}<p class="err" id="bErr" role="alert"></p><div class="actions"><button type="button" class="primary" id="bTok">Show events</button></div>`;
   el.querySelector('#bTok').onclick=()=>{keepToken(el);if(!reTok()){el.querySelector('#bErr').textContent='Paste your token first.';return}mountBrowse(el)};return}
  let prog=PROG[prefs.reProg]?prefs.reProg:((curEv()&&!curEv().sample&&curEv().program)||'V5RC'),data=null,limit=60;
  el.innerHTML=`<div class="seg" role="group" aria-label="Program">${Object.keys(PROG).map(k=>`<button type="button" data-p="${k}" aria-pressed="${k===prog}">${PROG[k].label}</button>`).join('')}</div>
@@ -652,7 +658,7 @@ function mountBrowse(el){if(!el)return;
   q('#bList').innerHTML=h||'<p class="none">No events match. Try another region or search, or enter a SKU.</p>';
   const ago=Math.round((Date.now()-data.at)/6e4);stat(`${L.length} ${PROG[prog].label} event${L.length===1?'':'s'} from the last few days through the next 10 weeks · updated ${ago<1?'just now':ago<60?ago+' min ago':Math.round(ago/60)+' h ago'}`);
   const m=q('#bMore');if(m)m.onclick=()=>{limit+=60;draw()}};
- const load=async force=>{stat('Loading events from RobotEvents…');q('#bList').innerHTML='';data=null;
+ const load=async force=>{stat('Loading events from VEX Events…');q('#bList').innerHTML='';data=null;
   try{data=await reList(prog,force);const regs=[...new Set(data.list.map(e=>e.region).filter(Boolean))].sort();const sel=q('#breg');sel.innerHTML='<option value="">All regions</option>'+regs.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');sel.value=regs.includes(prefs.reReg)?prefs.reReg:'';limit=60;draw()}
   catch(err){stat(reMsg(err))}};
  el.addEventListener('click',async ev2=>{const p=ev2.target.closest('[data-p]');if(p){prog=p.dataset.p;prefs.reProg=prog;savePrefs();el.querySelectorAll('[data-p]').forEach(b=>b.setAttribute('aria-pressed',String(b===p)));load(false);return}
