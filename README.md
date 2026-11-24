@@ -14,6 +14,21 @@ It is a single self-contained `index.html` with no build step.
 - **Rules** — 2026–27 rule codes with short labels for V5RC and VEX U (Override) and VIQRC (Level Up), links to the official Q&A, and custom rule codes per event for mid-season manual updates.
 - **Setup** — paste a team list and a match schedule (from a spreadsheet or Tournament Manager); commas, tabs or spaces all work.
 
+## Loading events from RobotEvents
+
+Open the event menu (tap the event name at the top). Once the device has a RobotEvents API token, it lists this season's events automatically: happening now, the next 7 days, and the following weeks (from a few days ago through about 10 weeks ahead). Switch between V5RC, VEX U and VIQRC, search by name, city or SKU, and filter by state or region (remembered on the device). Tap an event to load its team list and match schedule; events with several divisions ask which division. Events you already loaded open instead of loading twice. The list is cached on the device for 6 hours; **Refresh list** fetches it again. **Enter a SKU instead** handles anything outside that window.
+
+On first use, the event menu opens by itself so you can pick an event.
+
+**Update from RobotEvents** in the Event tab pulls the latest teams and schedule later (for example once the schedule is posted, or after alliance selection) without touching logged entries.
+
+- Get a token at <https://www.robotevents.com/api/v2> under Request Access.
+- The token is saved only in the browser's `localStorage` on that device and is sent only to the RobotEvents API. It is never stored in shared events, backups, or this repository.
+- Requests go straight from the browser to RobotEvents, so this works when the app is opened from GitHub Pages or as a local file. The claude.ai-hosted copy cannot reach other websites; load the event in a GitHub copy, export a backup, and import it there.
+- If RobotEvents does not accept requests from web pages, set a relay address under **Advanced** (for example a small serverless function that forwards requests to `https://www.robotevents.com/api/v2`).
+
+Supported programs: V5RC, VEX U and VIQRC.
+
 ## Storage
 
 - **This device** — saved in the browser's `localStorage`. Works anywhere, including when hosted as a plain static page.
