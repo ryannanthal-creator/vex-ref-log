@@ -88,10 +88,28 @@ label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:15px}
 .mlab b.l1{font-size:20px}
 .mlab b.l2{font-size:16px}
 .mlab small{font-size:13px;color:var(--mut);white-space:nowrap}
-.all{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:8px 10px}
+.all{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px}
+.ts{display:flex;flex-direction:column;gap:3px;min-width:0}
+.asc{font:700 30px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:center;min-width:1.6em}
+.all.red .asc{color:var(--red)}
+.all.blue .asc{color:var(--blue)}
+.all.won .asc::after{content:'';display:block;height:4px;border-radius:2px;background:currentColor;margin-top:4px}
+.all.lost .asc{opacity:.45}
+.result{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font:700 24px/1.1 'Barlow Condensed',sans-serif}
+.result .red{color:var(--red)}
+.result .blue{color:var(--blue)}
+.result button{font:600 15px Barlow,sans-serif}
+.result .muted{font:500 16px Barlow,sans-serif;color:var(--mut)}
+.chip.rW{border-color:var(--ink)}
+.chip.rW small{color:var(--ink);font-weight:700}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px}
+.sw.red{background:var(--red)}
+.sw.blue{background:var(--blue)}
 .all.red{background:var(--redt);border-left:4px solid var(--red)}
 .all.blue{background:var(--bluet);border-left:4px solid var(--blue)}
-.all.tw{grid-column:span 2;background:var(--surf);border-left:4px solid var(--ink);flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start;column-gap:18px}
+.all.tw{grid-column:span 2;background:var(--surf);border-left:4px solid var(--ink)}
+.all.tw .ts{flex-direction:row;flex-wrap:wrap;column-gap:18px}
+.all.tw .asc{color:var(--ink)}
 .tchip{display:flex;align-items:center;gap:6px;font:600 18px/1.15 'Barlow Condensed',sans-serif;white-space:nowrap}
 .tbd{color:var(--mut)}
 .pips{display:inline-flex;gap:3px;align-items:center}
@@ -281,7 +299,7 @@ main{padding-bottom:calc(160px + env(safe-area-inset-bottom,0px))}
 html{scroll-padding-top:90px}
 .mrow,.trow{scroll-margin-top:90px}
 }
-@media(max-width:600px){.lrow{grid-template-columns:auto auto auto minmax(0,1fr)}.lx{grid-column:1/-1}.rrow{grid-template-columns:4.4em minmax(0,1fr) auto}.rrow a,.rrow .x{grid-column:3}.rrow .cnt{grid-column:3;grid-row:1}.rrow a{display:none}.mhead{grid-template-columns:4.5em minmax(0,1fr) minmax(0,1fr)}.mlab{padding:10px 4px 10px 10px}.mlab .n{display:none}.tchip{font-size:17px}.quick button{font-size:15px}}
+@media(max-width:600px){.asc{font-size:26px}.all{padding:8px}.lrow{grid-template-columns:auto auto auto minmax(0,1fr)}.lx{grid-column:1/-1}.rrow{grid-template-columns:4.4em minmax(0,1fr) auto}.rrow a,.rrow .x{grid-column:3}.rrow .cnt{grid-column:3;grid-row:1}.rrow a{display:none}.mhead{grid-template-columns:4.5em minmax(0,1fr) minmax(0,1fr)}.mlab{padding:10px 4px 10px 10px}.mlab .n{display:none}.tchip{font-size:17px}.quick button{font-size:15px}}
 @media(prefers-reduced-motion:no-preference){.sheet:not([hidden]) .card2{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
 </style>
 </head>
@@ -462,14 +480,26 @@ const mfieldOf=ev=>{const f=(prefs.mfield||{})[ev.id]||'';return ev.matches.some
 const mtime=m=>{if(m.sched){const d=new Date(m.sched);if(!isNaN(d))return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}return m.time||''};
 const ago=t=>{const m=Math.round((Date.now()-t)/6e4);return m<1?'just now':m<60?m+' min ago':Math.round(m/60)+' h ago'};
 function matchRow(ev,m,ST,nx,fld){const P=PROG[ev.program],open=S.open.match===m.id,n=viol().filter(e=>e.match===m.label).length,tm=mtime(m);
- const sc=m.scored&&(m.rs!=null||m.bs!=null)?(P.blue?`<small class="score"><span class="r${m.rs>m.bs?' w':''}">${m.rs??'–'}</span>–<span class="b${m.bs>m.rs?' w':''}">${m.bs??'–'}</span></small>`:`<small class="score">${m.rs??''} pts</small>`):'';
- const ch=ts=>ts.map(t=>`<span class="tchip"><b>${esc(t)}</b>${pips(ST.get(t))}</span>`).join('')||'<span class="tbd">TBD</span>';
- const al=P.blue?`<span class="all red">${ch(m.red)}</span><span class="all blue">${ch(m.blue)}</span>`:`<span class="all tw">${ch(m.red)}</span>`;
- return `<article class="mrow${open?' open':''}${nx&&nx.id===m.id?' next':''}" id="m-${esc(m.id)}"><button class="mhead" data-act="openMatch" data-id="${esc(m.id)}" aria-expanded="${open}"><span class="mlab"><b${m.label.length>6?' class="l2"':m.label.length>3?' class="l1"':''}>${esc(m.label)}</b>${tm?`<small>${esc(tm)}</small>`:''}${!fld&&m.field?`<small>${esc(m.field)}</small>`:''}${sc}${n?`<small class="n">${n} logged</small>`:''}</span>${al}</button>${open?matchDetail(ev,m,ST):''}</article>`}
+ const ch=ts=>ts.map(t=>`<span class="tchip"><b>${esc(t)}</b>${pips(ST.get(t))}</span>`).join('')||'<span class="tbd">TBD</span>',R=resultOf(ev,m);
+ const st=side=>!R||!R.win?'':R.win==='tie'?' tied':R.win===side?' won':' lost';
+ const strip=(cls,ts,v,state)=>`<span class="all ${cls}${state}"><span class="ts">${ch(ts)}</span>${v!=null?`<b class="asc">${v}</b>`:''}</span>`;
+ const al=P.blue?strip('red',m.red,R?R.rs:null,st('red'))+strip('blue',m.blue,R?R.bs:null,st('blue')):strip('tw',m.red,R?R.rs:null,'');
+ return `<article class="mrow${open?' open':''}${nx&&nx.id===m.id?' next':''}" id="m-${esc(m.id)}"><button class="mhead" data-act="openMatch" data-id="${esc(m.id)}" aria-expanded="${open}"><span class="mlab"><b${m.label.length>6?' class="l2"':m.label.length>3?' class="l1"':''}>${esc(m.label)}</b>${tm?`<small>${esc(tm)}</small>`:''}${!fld&&m.field?`<small>${esc(m.field)}</small>`:''}${n?`<small class="n">${n} logged</small>`:''}</span>${al}</button>${open?matchDetail(ev,m,ST):''}</article>`}
 function matchDetail(ev,m,ST){const P=PROG[ev.program];
  const blocks=m.red.map(t=>[t,P.blue?'red':'tw']).concat(m.blue.map(t=>[t,'blue'])).map(([t,side])=>{const s=ST.get(t),here=(s?s.list:[]).filter(e=>e.match===m.label).sort((a,b)=>a.at-b.at);
   return `<section class="tb ${side}"><div class="tbh"><button class="tlink" data-act="gotoTeam" data-t="${esc(t)}"><b>${esc(t)}</b><span>${esc(teamName(ev,t))}</span></button><span class="tsum">${sumText(s)}</span></div>${warnBox(warns(s?s.list:[]))}${here.map(entRow).join('')}${quick(t,m.label)}</section>`}).join('');
- return `<div class="mdet">${blocks||'<p class="none">No teams listed for this match.</p>'}${P.auton?autonBlock(m):''}</div>`}
+ const R=resultOf(ev,m),manual=!ev.re&&writable(ev);
+ const res=R?`<div class="result">${P.blue?(R.win==='tie'?`Tie ${R.rs}–${R.bs}`:`<span class="${R.win}">${R.win==='red'?'Red':'Blue'} won</span> ${Math.max(R.rs,R.bs)}–${Math.min(R.rs,R.bs)}`):`Score ${R.rs}`}${manual?`<button type="button" class="linkb" data-act="score" data-id="${esc(m.id)}">Edit score</button>`:''}</div>`
+  :manual?`<div class="result"><span class="muted">No score yet</span><button type="button" data-act="score" data-id="${esc(m.id)}" class="ghost">Enter score</button></div>`:ev.re?'<div class="result"><span class="muted">Not scored yet. Scores appear here once Tournament Manager posts them.</span></div>':'';
+ return `<div class="mdet">${res}${blocks||'<p class="none">No teams listed for this match.</p>'}${P.auton?autonBlock(m):''}</div>`}
+function resultOf(ev,m){if(!m||!m.scored||(m.rs==null&&m.bs==null))return null;if(!PROG[ev.program].blue)return{rs:m.rs??m.bs,bs:null,win:null};const r=m.rs??0,b=m.bs??0;return{rs:r,bs:b,win:r>b?'red':b>r?'blue':'tie'}}
+function openScore(mid){const ev=curEv();if(!writable(ev))return toast('This event is view-only for you');const m=ev.matches.find(x=>x.id===mid);if(!m)return;const P=PROG[ev.program];
+ const box=(id,lab,cls,v)=>`<label><span class="lt2">${cls?`<span class="sw ${cls}"></span>`:''}${lab}</span><input id="${id}" type="number" inputmode="numeric" min="0" max="9999" value="${v??''}"></label>`;
+ sheet(`<h2 id="sheetTitle">${esc(m.label)} final score</h2><form id="scF" novalidate><div class="pair">${P.blue?box('sR','Red '+esc(m.red.join(' ')),'red',m.rs)+box('sB','Blue '+esc(m.blue.join(' ')),'blue',m.bs):box('sR','Score','',m.rs)}</div><p class="err" id="sErr" role="alert"></p><div class="actions">${m.scored?'<button type="button" class="danger" id="sClr">Clear score</button>':''}<span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary">Save score</button></div></form>`,c=>{
+  const q=s=>c.querySelector(s),fix=f=>{const cur=curEv(),mm=cur&&cur.matches.find(x=>x.id===mid);if(mm){f(mm);persistEvent(cur)}closeSheet()};setTimeout(()=>q('#sR').focus(),30);
+  q('#scF').onsubmit=e=>{e.preventDefault();const r=parseInt(q('#sR').value,10),b=P.blue?parseInt(q('#sB').value,10):null;if(!(r>=0)||(P.blue&&!(b>=0))){q('#sErr').textContent=P.blue?'Enter both scores.':'Enter the score.';return}
+   fix(mm=>{mm.rs=r;mm.bs=P.blue?b:null;mm.scored=true});toast(`Saved ${m.label}: ${P.blue?r+'–'+b:r}`)};
+  const cl=q('#sClr');if(cl)cl.onclick=()=>{fix(mm=>{mm.rs=null;mm.bs=null;mm.scored=false});toast('Score cleared')}})}
 function autonBlock(m){const a=autonFor(m)||{},b=a.bonus||'';
  return `<section class="tb auton"><div class="tbh"><b class="h">Autonomous</b></div><div class="lbl">Bonus</div><div class="seg wide" role="group" aria-label="Autonomous Bonus">${[['red','Red'],['tie','Tie'],['blue','Blue'],['','None']].map(([k,l])=>`<button class="b-${k||'none'}" data-act="bonus" data-id="${esc(m.id)}" data-k="${k}" aria-pressed="${!!a.id&&b===k}">${l}</button>`).join('')}</div><div class="lbl">Win Point</div><div class="seg wide" role="group" aria-label="Autonomous Win Point">${['red','blue'].map(sd=>`<button class="b-${sd}" data-act="awp" data-id="${esc(m.id)}" data-k="${sd}" aria-pressed="${!!a[sd==='red'?'awpRed':'awpBlue']}">${sd==='red'?'Red':'Blue'} AWP</button>`).join('')}</div><p class="hint">For your records only. Scores still go into Tournament Manager.</p></section>`}
 
@@ -486,7 +516,7 @@ function teamRow(ev,t,s,LR){const open=S.open.team===t,w=warns(s?s.list:[]),R=LR
  const c=s?[s.minor&&`<span class="tag t-minor">${s.minor} Minor</span>`,s.major&&`<span class="tag t-major">${s.major} Major</span>`,s.disabled&&`<span class="tag t-disabled">${s.disabled} Disabled</span>`,s.note&&`<span class="tag t-note">${s.note} Note${s.note>1?'s':''}</span>`].filter(Boolean).join(''):'';
  let det='';if(open){const ms=ev.matches.filter(m=>m.red.includes(t)||m.blue.includes(t)),list=(s?s.list:[]).slice().sort((a,b)=>b.at-a.at);
   const loc=[TI.city,TI.region].filter(Boolean).join(', '),facts=[TI.org&&esc(TI.org)+(loc?` <span>· ${esc(loc)}</span>`:''),!TI.org&&loc&&esc(loc),(TI.robot||TI.grade)&&[TI.robot&&'Robot: '+esc(TI.robot),TI.grade&&esc(TI.grade)].filter(Boolean).join(' · '),R&&`Rank #${R.rank}`+(P.blue&&R.w!=null?` · ${R.w}-${R.l??0}-${R.t??0}`:'')+(R.wp!=null?` <span>· WP ${R.wp} · AP ${R.ap??0} · SP ${R.sp??0}</span>`:R.avg!=null?` <span>· average ${R.avg}${R.hi!=null?', high '+R.hi:''}</span>`:''),SK&&'Skills: '+[SK.driver&&`Driver ${SK.driver.score??'–'}${SK.driver.rank?` (#${SK.driver.rank})`:''}`,SK.prog&&`Autonomous ${SK.prog.score??'–'}${SK.prog.rank?` (#${SK.prog.rank})`:''}`].filter(Boolean).join(' · ')].filter(Boolean);
-  det=`<div class="tdet">${facts.length?`<div class="facts">${facts.map(f=>`<div>${f}</div>`).join('')}</div>`:''}${warnBox(w)}${list.length?list.map(entRow).join(''):'<p class="none">Nothing logged for this team.</p>'}${ms.length?`<div class="lbl">Matches</div><div class="chips">${ms.map(m=>`<button class="chip" data-act="gotoMatch" data-id="${esc(m.id)}">${esc(m.label)}${mtime(m)?` <small>${esc(mtime(m))}</small>`:''}${m.scored&&m.rs!=null?` <small>${m.rs}–${m.bs??''}</small>`:''}</button>`).join('')}</div>`:''}${quick(t,'')}</div>`}
+  det=`<div class="tdet">${facts.length?`<div class="facts">${facts.map(f=>`<div>${f}</div>`).join('')}</div>`:''}${warnBox(w)}${list.length?list.map(entRow).join(''):'<p class="none">Nothing logged for this team.</p>'}${ms.length?`<div class="lbl">Matches</div><div class="chips">${ms.map(m=>{const R=resultOf(ev,m),red=m.red.includes(t),two=P.blue,my=R?(two&&!red?R.bs:R.rs):null,op=R&&two?(red?R.bs:R.rs):null,wl=R&&R.win?(R.win==='tie'?'T':(R.win==='red')===red?'W':'L'):'';return `<button class="chip${wl?' r'+wl:''}" data-act="gotoMatch" data-id="${esc(m.id)}">${esc(m.label)}${R?` <small>${wl?wl+' ':''}${my}${op!=null?'–'+op:''}</small>`:mtime(m)?` <small>${esc(mtime(m))}</small>`:''}</button>`}).join('')}</div>`:''}${quick(t,'')}</div>`}
  return `<article class="trow${open?' open':''}" id="t-${esc(t)}"><button class="thead" data-act="openTeam" data-t="${esc(t)}" aria-expanded="${open}"><span class="tn"><b>${esc(t)}</b><small>${esc(teamName(ev,t))}${rline?`<span class="tmeta">${esc(rline)}</span>`:''}</small></span><span class="cts">${c}${w.length?'<span class="wdot" title="Repeated Minors">!</span>':''}</span></button>${det}</article>`}
 
 V.log={
@@ -630,6 +660,7 @@ function applySched(ev,list,replace){const byL=new Map(ev.matches.map(m=>[m.labe
 const csvCell=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return/[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
 function buildCSV(ev){const rows=[['Time','Match','Team','Outcome','Match affecting','Rules','Notes','Referee']].concat(viol().slice().sort((a,b)=>a.at-b.at).map(e=>[new Date(e.at).toLocaleString(),e.match,e.team,OL[e.outcome],e.affecting?'Yes':'',e.rules.map(r=>'<'+r+'>').join(' '),e.notes,e.ref]));
  const auto=S.entries.filter(e=>e.kind==='auton'&&(e.bonus||e.awpRed||e.awpBlue));if(auto.length){rows.push([],['Match','Autonomous Bonus','Red AWP','Blue AWP']);auto.forEach(a=>rows.push([a.match,a.bonus,a.awpRed?'Yes':'',a.awpBlue?'Yes':'']))}
+ const played=ev.matches.filter(m=>resultOf(ev,m));if(played.length){rows.push([],PROG[ev.program].blue?['Match','Red teams','Blue teams','Red score','Blue score','Winner']:['Match','Teams','Score']);played.forEach(m=>{const R=resultOf(ev,m);rows.push(PROG[ev.program].blue?[m.label,m.red.join(' '),m.blue.join(' '),R.rs,R.bs,R.win==='tie'?'Tie':R.win==='red'?'Red':'Blue']:[m.label,m.red.join(' '),R.rs])})}
  return rows.map(r=>r.map(csvCell).join(',')).join('\r\n')}
 async function doExport(k){const ev=curEv();if(!ev)return;const base=(ev.name.replace(/[^\w-]+/g,'-').replace(/^-+|-+$/g,'')||'event').slice(0,40),name=`${base}-anomaly-log.${k}`;
  const data=k==='csv'?buildCSV(ev):JSON.stringify({app:'vex-ref-log',version:1,exported:Date.now(),event:evBody(ev),entries:S.entries},null,1);
@@ -868,6 +899,7 @@ const A={
  gotoMatch:b=>{S.tab='matches';S.mq='';S.mround='all';S.open.match=b.dataset.id;shellKey='';renderAll();jump('m-'+b.dataset.id)},
  new:b=>openEntry({team:b.dataset.t,match:b.dataset.m,outcome:b.dataset.o}),edit:b=>openEntry({id:b.dataset.id}),
  bonus:b=>setAuton(b.dataset.id,{bonus:b.dataset.k}),
+ score:b=>openScore(b.dataset.id),
  awp:b=>{const ev=curEv(),m=ev.matches.find(x=>x.id===b.dataset.id);if(!m)return;const k=b.dataset.k==='red'?'awpRed':'awpBlue';setAuton(m.id,{[k]:!(autonFor(m)||{})[k]})},
  mround:b=>{S.mround=b.dataset.k;shellKey='';renderAll()},fout:b=>{S.f.out=b.dataset.k;shellKey='';renderAll()},
  ruleLog:b=>{S.tab='log';S.f={out:'all',rule:b.dataset.k,ref:'',q:'',sort:'new'};prefs.tab='log';savePrefs();renderAll()},
