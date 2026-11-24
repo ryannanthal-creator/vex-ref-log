@@ -15,7 +15,7 @@ It is a single `index.html` plus a small `config.js`, a web app manifest, icons 
 - **Scores for scrimmages** — for events set up by hand, open a match and tap **Enter score**; results show the same way and go into the CSV export.
 - **Live sharing** — share an event with a code or invite link; every referee who joins sees each other's entries live, and the app shows who's on the event right now.
 - **Log** — filter by outcome, rule, referee or text; sort by time, team or match; export CSV or a JSON backup; import a backup to merge.
-- **Rules** — 2026–27 rule codes with short labels for V5RC and VEX U (Override) and VIQRC (Level Up), links to the official Q&A, and custom rule codes per event for mid-season manual updates.
+- **Rules** — every rule number in the current Override (V5RC and VEX U) and Level Up (VIQRC) game manuals, checked against the official rules index. Tap a rule, on the Rules tab or with **Read** while logging, to see its **official wording**, loaded from the game manual on events.vex.com; links to other rules open in place, and **Add to entry** cites it. **Save official rules for offline use** keeps a copy in that browser for gyms without signal. The short descriptions in the list are the app's own and only help you find a rule; the manual's wording isn't stored in this repo. Custom rule codes can be added per event for mid-season manual updates.
 - **Setup** — paste a team list and a match schedule (from a spreadsheet or Tournament Manager); commas, tabs or spaces all work.
 
 ## On your phone
