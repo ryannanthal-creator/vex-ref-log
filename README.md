@@ -1,6 +1,6 @@
 # VEX Ref Log
 
-A digital match anomaly log for VEX head referees, inspired by Referee FYI, that works for any event — tournaments, scrimmages, practice nights and league sessions — with no RobotEvents listing required.
+A digital match anomaly log for VEX head referees, inspired by Referee FYI. It lists official events from VEX Events (events.vex.com) automatically, and also works for scrimmages, practice nights and league sessions that aren't listed there.
 
 It is a single self-contained `index.html` with no build step.
 
@@ -14,20 +14,20 @@ It is a single self-contained `index.html` with no build step.
 - **Rules** — 2026–27 rule codes with short labels for V5RC and VEX U (Override) and VIQRC (Level Up), links to the official Q&A, and custom rule codes per event for mid-season manual updates.
 - **Setup** — paste a team list and a match schedule (from a spreadsheet or Tournament Manager); commas, tabs or spaces all work.
 
-## Loading events from RobotEvents
+## Loading events from VEX Events
 
 Open the event menu (tap the event name at the top). It lists this season's events automatically: happening now, the next 7 days, and the following weeks (from a few days ago through about 10 weeks ahead). Switch between V5RC, VEX U and VIQRC, search by name, city or SKU, and filter by state or region (remembered on the device). Tap an event to load its team list and match schedule; events with several divisions ask which division. Events you already loaded open instead of loading twice. The list is cached on the device for 6 hours; **Refresh list** fetches it again. **Enter a SKU instead** handles anything outside that window.
 
 On first use, the event menu opens by itself so you can pick an event.
 
-**Update from RobotEvents** in the Event tab pulls the latest teams and schedule later (for example once the schedule is posted, or after alliance selection) without touching logged entries.
+**Update from VEX Events** in the Event tab pulls the latest teams and schedule later (for example once the schedule is posted, or after alliance selection) without touching logged entries.
 
-- The site uses the RobotEvents API token in `config.js`, so nobody has to enter one. That token is public: anyone can read it from the site or this repo. To replace it, request a new token at <https://www.robotevents.com/api/v2> (Request Access), revoke the old one, and update `config.js`. Leave it empty to make each device enter its own.
-- A token entered on a device is saved only in that browser's `localStorage`, takes priority over the built-in one, and is never stored in shared events or backups. Tokens are sent only to the RobotEvents API.
-- Requests go straight from the browser to RobotEvents, so this works when the app is opened from GitHub Pages or as a local file. The claude.ai-hosted copy cannot reach other websites; load the event in a GitHub copy, export a backup, and import it there.
-- If RobotEvents does not accept requests from web pages, set a relay address under **Advanced** (for example a small serverless function that forwards requests to `https://www.robotevents.com/api/v2`).
+- The site uses the VEX Events API token in `config.js` (`eventsToken`), so nobody has to enter one. That token is public: anyone can read it from the site or this repo. To replace it, request a new token at <https://events.vex.com/api/v2/accessRequest/create>, revoke the old one, and update `config.js`. Leave it empty to make each device enter its own.
+- A token entered on a device is saved only in that browser's `localStorage`, takes priority over the built-in one, and is never stored in shared events or backups. Tokens are sent only to the VEX Events API (`https://events.vex.com/api/v2`).
+- Requests go straight from the browser to VEX Events, so this works when the app is opened from GitHub Pages or as a local file. The claude.ai-hosted copy cannot reach other websites; load the event in a GitHub copy, export a backup, and import it there.
+- If VEX Events does not accept requests from web pages, set a relay address under **Advanced** (for example a small serverless function that forwards requests to `https://events.vex.com/api/v2`).
 
-Supported programs: V5RC, VEX U and VIQRC.
+Supported programs: V5RC, VEX U and VIQRC. SKUs look like `VE-V5-26-65904`; older `RE-` SKUs are accepted too.
 
 ## Storage
 
