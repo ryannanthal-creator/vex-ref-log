@@ -181,7 +181,7 @@ label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:15px}
 .lx{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
 .pinfo{margin:0 0 12px;font-size:15px}
 .rsec h3{border-bottom:2px solid var(--ink);padding-bottom:4px}
-.rrow{display:grid;grid-template-columns:5em minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);min-height:44px}
+.rrow{width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:5em minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 4px;min-height:44px}
 .rrow a{font-size:14px;white-space:nowrap}
 .cnt{border:0;background:var(--warnbg);color:var(--warnink);border-radius:999px;padding:4px 10px;font-weight:700;font-size:14px;min-height:32px}
 .card{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
@@ -230,6 +230,9 @@ label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:15px}
 #fPicks{margin-top:6px}
 #fSel:empty{display:none}
 #fRuleQ{margin-top:8px}
+.rres .rr{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}
+.rres .rr>button:first-child{flex:1;border-bottom:0}
+.rres .rd{flex:none;background:none;border:0;border-left:1px solid var(--line);color:var(--blue);font-weight:600;padding:0 14px;min-height:44px}
 .rres button{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;padding:10px 6px;border:0;border-bottom:1px solid var(--line);background:none;min-height:44px}
 .err{color:var(--red);font-weight:600;margin:8px 0 0}
 .err:empty{display:none}
@@ -269,6 +272,26 @@ details.adv summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;
 .codebox{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;background:var(--surf);border-radius:10px;padding:10px 14px;margin:8px 0}
 .codebox span{font-size:14px;color:var(--mut)}
 .codebox b{font:700 34px/1 'Barlow Condensed',sans-serif;letter-spacing:.06em}
+.rv{z-index:25}
+#rvCard{display:flex;flex-direction:column}
+#rvCard .fbody{flex:1}
+.rrow:hover{background:var(--surf)}
+.rrow .pv{display:block;font-size:14px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rrow .go{color:var(--mut);font-size:20px}
+.rtext{font-size:17px;line-height:1.55;max-width:68ch}
+.rtext h1,.rtext h2,.rtext h3{font:700 22px/1.2 'Barlow Condensed',sans-serif;margin:14px 0 6px}
+.rtext h1:first-child{display:none}
+.rtext img{max-width:100%;height:auto;border-radius:8px;margin:8px 0}
+.rtext table{border-collapse:collapse;display:block;overflow-x:auto;margin:8px 0}
+.rtext td,.rtext th{border:1px solid var(--line);padding:6px 8px;vertical-align:top}
+.rtext li{margin:4px 0}
+.rtext a[data-rule]{font-weight:700}
+.rtext .rk-red{border-left:4px solid var(--red);background:var(--redt);padding:8px 12px;border-radius:6px;margin:10px 0}
+.rtext .rk-blue{border-left:4px solid var(--blue);background:var(--bluet);padding:8px 12px;border-radius:6px;margin:10px 0}
+.rsrc{font-size:13px;color:var(--mut);border-top:1px solid var(--line);margin-top:16px;padding-top:8px}
+.rframe{width:100%;height:min(60vh,560px);border:1px solid var(--line);border-radius:10px;background:#fff}
+.ffoot .ext{display:inline-flex;align-items:center;min-height:50px;padding:0 6px;font-weight:600;white-space:nowrap}
+.rread{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:#16171b;color:#fff;border-radius:12px;padding:10px 12px 10px 16px;display:flex;gap:12px;align-items:center;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgb(0 0 0/.25)}
 .toast[hidden]{display:none}
 .toast button{background:none;border:1px solid #5b5f69;color:var(--amber);border-radius:8px;min-height:38px;padding:0 12px;font-weight:700}
@@ -316,6 +339,7 @@ html{scroll-padding-top:90px}
 </header>
 <main id="main"></main>
 <div id="sheet" class="sheet" hidden><div class="card2" id="sheetCard" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div></div>
+<div id="ruleView" class="sheet rv" hidden><div class="card2 full" id="rvCard" role="dialog" aria-modal="true" aria-labelledby="rvTitle"></div></div>
 <button class="fab" type="button" data-act="newBlank" aria-label="Log an entry"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Log</span></button>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <script src="config.js"></script>
@@ -348,7 +372,7 @@ const VUR=[
 ['VEX U robot','VUR1 Two Robots: sizes and materials|VUR2 Allowed VEX products|VUR3 Fabrication processes|VUR4 Raw Stock forms|VUR5 What isn’t Raw Stock|VUR6 Prohibited materials|VUR7 Fabricated Parts are Team-made|VUR8 Springs|VUR9 Fasteners|VUR10 V5 Brain and Radio|VUR11 Motor limits|VUR12 Sensors and processors|VUR13 No commercial electromechanical assemblies|VUR14 Pneumatics|VUR15 Bearings']];
 const IQR=[
 ['Safety','S1 Stay safe; don’t damage the Field|S2 Students accompanied by an adult|S3 Release form required'],
-['General','G1 Treat everyone with respect|G2 Student-centered program|G3 Use common sense|G4 Work matches the Students’ skill level|G5 One Team per Student|G6 Accidental vs. willful Robot violations'],
+['General','G1 Treat everyone with respect|G2 Student-centered program|G3 Use common sense|G4 Work matches the Students’ skill level|G5 Accidental vs. willful Robot violations'],
 ['General game','GG1 Drivers drive; stay in the Driver Station|GG2 Robot must attend every Match|GG3 Robots on the Field ready to play|GG4 Hands out of the Field|GG5 Replays are rare|GG6 Disqualifications|GG7 No time-outs|GG8 Keep your Robot together|GG9 Don’t damage the Field|GG10 Handling the Robot mid-Match|GG11 Switching Controllers mid-Match|GG12 No early start or moving after the end|GG13 Ending a Match early|GG14 Appealing a ruling'],
 ['Scoring','SC1 Scores checked after the Match|SC2 Head Referee checks visually|SC3 Floor Goal|SC4 L1, L2 and L3 Goals|SC5 L4 Goal'],
 ['Specific game','SG1 Starting a Match|SG2 Horizontal expansion limit|SG3 Vertical expansion is unlimited|SG4 Keep Scoring Objects in the Field|SG5 One yellow Bean Bag Preload|SG6 Possess at most one Bean Bag|SG7 Using the Load Zone'],
@@ -356,10 +380,10 @@ const IQR=[
 ['Robot','R1 One Robot per Team|R2 Must pass inspection|R3 Size limit|R4 License plates|R5 Let go after the Match|R6 One Brain|R7 Power button reachable|R8 Firmware|R9 Motor limit|R10 Batteries|R11 One Controller per Robot|R12 Built from VEX IQ|R13 Prohibited items|R14 Allowed non-VEX IQ items|R15 Decorations|R16 Pneumatics|R17 Modifying parts'],
 ['Tournament','T1 Head Referee has final say and keeps the anomaly log|T2 Head Referee qualifications|T3 Appeals|T4 Event Partner authority|T5 Minor Field variance|T6 Field repairs and modifications|T7 Fields consistent at an event|T8 Qualification schedule|T9 Qualification Matches per Team|T10 Ranking by average score|T11 Ranking tiebreakers|T12 Alliance formation|T13 Teams in Finals|T14 Finals schedule|T15 Skills Match schedule|T16 Skills Field modifications|T17 Event Skills rankings|T18 Global Skills rankings|T19 League Skills']];
 const mk=a=>a.flatMap(([sec,s])=>s.split('|').map(x=>{const i=x.indexOf(' ');return{code:x.slice(0,i),label:x.slice(i+1),sec}}));
-const V5Q='https://events.vex.com/V5RC/2026-2027/QA/tag/',IQQ='https://events.vex.com/VIQRC/2026-2027/QA/tag/';
+const V5Q='https://events.vex.com/V5RC/2026-2027/QA/tag/',IQQ='https://events.vex.com/VIQRC/2026-2027/QA/tag/',VUQ='https://events.vex.com/VURC/2026-2027/QA/tag/';
 const PROG={
  V5RC:{label:'V5RC',long:'VEX V5 Robotics Competition',game:'Override',red:2,blue:2,auton:true,manual:'https://www.vexrobotics.com/override-manual',qa:V5Q,rules:mk(V5R),picks:['SG6','SG2','SG9','SG10','SG11','SG13','GG17','GG4']},
- VURC:{label:'VEX U',long:'VEX U Robotics Competition',game:'Override',red:1,blue:1,auton:true,manual:'https://www.vexrobotics.com/override-manual',qa:V5Q,rules:mk(V5R).concat(mk(VUR)),picks:['SG6','SG2','SG9','SG10','SG13','VUG4','GG17','GG4']},
+ VURC:{label:'VEX U',long:'VEX U Robotics Competition',game:'Override',red:1,blue:1,auton:true,manual:'https://www.vexrobotics.com/override-manual',qa:VUQ,rules:mk(V5R).concat(mk(VUR)),picks:['SG6','SG2','SG9','SG10','SG13','VUG4','GG17','GG4']},
  VIQRC:{label:'VIQRC',long:'VEX IQ Robotics Competition',game:'Level Up',red:2,blue:0,auton:false,manual:'https://www.vexrobotics.com/level-up-manual',qa:IQQ,rules:mk(IQR),picks:['SG2','SG6','SG7','GG4','GG10','GG12','GG8','SG4']}};
 const rulesFor=ev=>PROG[ev.program].rules.concat(ev.customRules.map(r=>({code:r.code,label:r.label||'Added rule',sec:'Added for this event',custom:true})));
 const ruleMap=ev=>new Map(rulesFor(ev).map(r=>[r.code,r]));
@@ -535,11 +559,11 @@ V.log={
  after:()=>{for(const[id,vals,all,key]of[['frule',usedRules(),'All rules','rule'],['fref',refs(),'All referees','ref']]){const s=$('#'+id);if(!s||document.activeElement===s)continue;s.innerHTML=`<option value="">${all}</option>`+vals.map(x=>`<option value="${esc(x)}">${id==='frule'?'&lt;'+esc(x)+'&gt;':esc(x)}</option>`).join('');if(!vals.includes(S.f[key]))S.f[key]='';s.value=S.f[key]}}};
 
 V.rules={
- shell:ev=>{const P=PROG[ev.program];return `<p class="pinfo"><b>${P.long}</b> · ${P.game}. Short labels to help you find a rule. The <a href="${P.manual}" target="_blank" rel="noopener">game manual</a> and the <a href="${P.qa.replace('tag/','')}" target="_blank" rel="noopener">official Q&amp;A</a> govern.</p><div class="tools"><input id="rq" type="search" placeholder="Search: SG6, holding, expansion" value="${esc(S.rq)}" aria-label="Search rules" autocomplete="off"></div><div id="body"></div>
+ shell:ev=>{const P=PROG[ev.program];return `<p class="pinfo"><b>${P.long}</b> · ${P.game}. Tap a rule to read its official wording, loaded from the <a href="${ruleIndexUrl(ev.program)}" target="_blank" rel="noopener">game manual on events.vex.com</a>. The short descriptions here are only to help you find a rule; the manual and the <a href="${P.qa.replace('tag/','')}" target="_blank" rel="noopener">official Q&amp;A</a> govern.</p>${inClaude?'':`<div class="actions" style="margin:-4px 0 12px"><button type="button" data-act="saveRules">Save official rules for offline use</button><span class="hint" id="rulesSaved">${savedNote(ev.program)}</span></div>`}<div class="tools"><input id="rq" type="search" placeholder="Search: SG6, holding, expansion" value="${esc(S.rq)}" aria-label="Search rules" autocomplete="off"></div><div id="body"></div>
   <section class="card" style="margin-top:20px"><h2>Add a rule code</h2><p class="hint">Manuals update during the season. Add a new or renumbered rule so it shows up in the picker for this event.</p><form id="ruleForm" class="row"><label>Code<input id="rcode" placeholder="SG14" maxlength="12" required style="width:8em"></label><label class="grow">Short label<input id="rlabel" placeholder="What it covers" maxlength="80"></label><button class="primary">Add rule</button></form></section>`},
  body:ev=>{const P=PROG[ev.program],q=S.rq.trim().toLowerCase().replace(/[<>]/g,''),cnt={};viol().forEach(e=>e.rules.forEach(r=>cnt[r]=(cnt[r]||0)+1));
   const R=rulesFor(ev).filter(r=>!q||r.code.toLowerCase().startsWith(q)||r.label.toLowerCase().includes(q));if(!R.length)return`<p class="none">No rule fits “${esc(S.rq)}”.</p>`;
-  return [...new Set(R.map(r=>r.sec))].map(s=>`<section class="rsec"><h3>${esc(s)}</h3>${R.filter(r=>r.sec===s).map(r=>`<div class="rrow"><b class="rc">&lt;${esc(r.code)}&gt;</b><span>${esc(r.label)}</span>${cnt[r.code]?`<button class="cnt" data-act="ruleLog" data-k="${esc(r.code)}" title="Show these in the log">${cnt[r.code]} logged</button>`:'<span></span>'}${r.custom?`<button class="x" data-act="delRule" data-k="${esc(r.code)}" aria-label="Remove ${esc(r.code)}">×</button>`:`<a href="${P.qa}${encodeURIComponent(r.code)}" target="_blank" rel="noopener">Q&amp;A</a>`}</div>`).join('')}</section>`).join('')}};
+  return [...new Set(R.map(r=>r.sec))].map(s=>`<section class="rsec"><h3>${esc(s)}</h3>${R.filter(r=>r.sec===s).map(r=>{const pv=r.custom?'':rulePreview(ev.program,r.code);return `<button type="button" class="rrow" data-act="rule" data-k="${esc(r.code)}"><b class="rc">&lt;${esc(r.code)}&gt;</b><span>${esc(r.label)}${pv?`<span class="pv">${esc(pv)}</span>`:''}</span>${cnt[r.code]?`<span class="cnt">${cnt[r.code]} logged</span>`:'<span></span>'}<span class="go" aria-hidden="true">›</span></button>`}).join('')}</section>`).join('')}};
 
 function whereText(ev){return ev.where==='room'?'Shared live: everyone who joins with the event code sees every entry as it’s logged. It keeps working offline and catches up when the connection returns.':ev.where==='device'?(LS.ok?'Kept in this browser on this device only. Export a backup before you clear the browser or switch devices.':'This browser isn’t keeping data. Export a backup before you close the page.'):ev.where==='mine'?'Saved to your account. Only you can see it, on any device where you open this page.':'Shared: anyone who can open this page sees it, and people with edit access can log entries. Every referee’s entries sync live.'}
 V.event={
@@ -600,10 +624,10 @@ function openEntry(o){const ev=curEv();if(!ev){openEvents();return}if(!writable(
   const q=s=>c.querySelector(s),out=()=>(q('input[name=fOut]:checked')||{}).value||'note';
   const picks=()=>{const cnt={};viol().forEach(x=>x.rules.forEach(r=>cnt[r]=(cnt[r]||0)+1));const top=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).slice(0,6);for(const r of P.picks)if(top.length<8&&!top.includes(r))top.push(r);return top};
   const lab=r=>(RM.get(r)||{}).label||'';
-  const draw=()=>{q('#fSel').innerHTML=sel.map(r=>`<button type="button" class="chip on" data-r="${esc(r)}" aria-label="Remove rule ${esc(r)}">&lt;${esc(r)}&gt; <span class="lab">${esc(lab(r))}</span> ×</button>`).join('');
+  const draw=()=>{q('#fSel').innerHTML=sel.map(r=>`<button type="button" class="chip on" data-r="${esc(r)}" aria-label="Remove rule ${esc(r)}">&lt;${esc(r)}&gt; <span class="lab">${esc(lab(r))}</span> ×</button>`).join('')+(sel.length?`<div class="rread">${sel.map(r=>`<button type="button" class="linkb" data-read="${esc(r)}">Read &lt;${esc(r)}&gt;</button>`).join('')}</div>`:'');
    q('#fPicks').innerHTML=picks().filter(r=>!sel.includes(r)).map(r=>`<button type="button" class="chip" data-r="${esc(r)}" title="${esc(lab(r))}">&lt;${esc(r)}&gt;</button>`).join('');const o=out();q('#fAffW').hidden=o!=='major';q('#fNeed').textContent=o==='minor'||o==='major'?'required: cite the rule number':'optional';ctx()};
   const search=()=>{const raw=q('#fRuleQ').value.trim().replace(/[<>]/g,''),l=raw.toLowerCase();if(!raw){q('#fRes').innerHTML='';return}
-   let h=rulesFor(ev).filter(r=>!sel.includes(r.code)&&(r.code.toLowerCase().startsWith(l)||r.label.toLowerCase().includes(l))).slice(0,8).map(r=>`<button type="button" data-r="${esc(r.code)}"><b class="rc">&lt;${esc(r.code)}&gt;</b><span>${esc(r.label)}</span></button>`).join('');
+   let h=rulesFor(ev).filter(r=>!sel.includes(r.code)&&(r.code.toLowerCase().startsWith(l)||r.label.toLowerCase().includes(l)||rulePreview(ev.program,r.code).toLowerCase().includes(l))).slice(0,8).map(r=>`<div class="rr"><button type="button" data-r="${esc(r.code)}"><b class="rc">&lt;${esc(r.code)}&gt;</b><span>${esc(r.label)}</span></button>${r.custom?'':`<button type="button" class="rd" data-read="${esc(r.code)}" aria-label="Read rule ${esc(r.code)}">Read</button>`}</div>`).join('');
    const code=raw.toUpperCase();if(/^[A-Z]{1,5}\d{1,2}[A-Z]?$/.test(code)&&!RM.has(code)&&!sel.includes(code))h+=`<button type="button" data-r="${esc(code)}"><b class="rc">&lt;${esc(code)}&gt;</b><span>Use this code (not in the list)</span></button>`;
    q('#fRes').innerHTML=h||'<p class="none">No rule found.</p>'};
   const ctx=()=>{const t=q('#fTeam').value.trim().toUpperCase(),mv=q('#fMatch').value.trim().toUpperCase();const ms=ev.matches.filter(m=>m.red.includes(t)||m.blue.includes(t));
@@ -612,7 +636,7 @@ function openEntry(o){const ev=curEv();if(!ev){openEvents();return}if(!writable(
    const parts=Object.entries(byR).map(([r,n])=>`&lt;${esc(r)}&gt;${n>1?' ×'+n:''}`),mi=list.filter(x=>x.outcome==='minor').length,ma=list.filter(x=>x.outcome==='major').length;
    const w=warns(list.concat([{...e,team:t,match:mv,outcome:out(),rules:sel.slice()}]));
    q('#fCtx').innerHTML=`<b>${esc(t)}</b> ${allTeams(ev).includes(t)?'':'<span class="new">(new team) </span>'}so far: ${mi} Minor${parts.length?' ('+parts.join(', ')+')':''} · ${ma} Major${warnBox(w)}`};
-  c.addEventListener('click',ev2=>{const b=ev2.target.closest('[data-r]');if(!b)return;const r=b.dataset.r,i=sel.indexOf(r);if(i>=0)sel.splice(i,1);else if(sel.length<8)sel.push(r);q('#fRuleQ').value='';q('#fRes').innerHTML='';draw()});
+  c.addEventListener('click',ev2=>{const rd=ev2.target.closest('[data-read]');if(rd){const r=rd.dataset.read;openRule(r,{picked:sel.includes(r),onPick:()=>{const i=sel.indexOf(r);if(i>=0)sel.splice(i,1);else if(sel.length<8)sel.push(r);q('#fRuleQ').value='';q('#fRes').innerHTML='';draw()}});return}const b=ev2.target.closest('[data-r]');if(!b)return;const r=b.dataset.r,i=sel.indexOf(r);if(i>=0)sel.splice(i,1);else if(sel.length<8)sel.push(r);q('#fRuleQ').value='';q('#fRes').innerHTML='';draw()});
   q('#fRuleQ').addEventListener('input',search);
   q('#fRuleQ').addEventListener('keydown',k=>{if(k.key==='Enter'){k.preventDefault();const b=q('#fRes [data-r]');if(b)b.click()}});
   q('#fTeam').addEventListener('input',ctx);q('#fMatch').addEventListener('input',ctx);c.querySelectorAll('input[name=fOut]').forEach(r=>r.addEventListener('change',draw));
@@ -888,6 +912,71 @@ function installCard(){if(inClaude||standalone())return'';const ios=/iPhone|iPad
  return `<section class="card"><h2>Put it on your home screen</h2><p class="hint">It opens full screen like an app, works with no signal, and updates itself whenever you’re online.</p>${installEvt?'<div class="actions"><button class="primary" data-act="install">Install app</button></div>':`<p class="hint">${ios?'In Safari, tap the Share button, then <b>Add to Home Screen</b>.':'Open your browser’s menu and choose <b>Install app</b> or <b>Add to Home Screen</b>.'}</p>`}</section>`}
 if('serviceWorker' in navigator&&!inClaude&&(location.protocol==='https:'||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)))addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
 
+/* ---------- official rule text ----------
+   The wording belongs to VEX Robotics and is not stored in this app. Each rule is read
+   from its official page on events.vex.com when opened, and a copy can be kept in this
+   browser for offline use. */
+const MANUAL={V5RC:'VEX_V5_Robotics_Competition_2026-2027_Override',VURC:'VEX_V5_Robotics_Competition_2026-2027_Override',VIQRC:'VEX_IQ_Robotics_Competition_2026-2027_Level_Up'};
+const ruleBase=prog=>`https://events.vex.com/storage/game_manual/${MANUAL[prog]||MANUAL.V5RC}/rules/`;
+const ruleUrl=(prog,code)=>ruleBase(prog)+encodeURIComponent(code)+'.html';
+const ruleIndexUrl=prog=>ruleBase(prog)+'index.html';
+const rkey=(prog,code)=>'rl.rule.'+(MANUAL[prog]||MANUAL.V5RC)+'.'+code;
+const ruleCache=(prog,code)=>{const c=LS.get(rkey(prog,code),null);return c&&typeof c.h==='string'?c:null};
+const DROP=new Set(['SCRIPT','STYLE','NOSCRIPT','IFRAME','OBJECT','EMBED','FORM','INPUT','BUTTON','SELECT','TEXTAREA','HEAD','TITLE','META','LINK','NAV','HEADER','FOOTER','SVG','CANVAS','VIDEO','AUDIO']);
+const KEEP=new Set(['P','UL','OL','LI','B','STRONG','I','EM','BR','H1','H2','H3','H4','H5','TABLE','THEAD','TBODY','TR','TD','TH','IMG','A','SPAN','DIV','SUP','SUB','FIGURE','FIGCAPTION','BLOCKQUOTE','CODE','U','HR']);
+const absUrl=(u,base)=>{try{const x=new URL(u,base);return x.protocol==='https:'?x.href:''}catch(e){return''}};
+function cleanInto(src,dst,base){for(const n of src.childNodes){if(n.nodeType===3){dst.appendChild(document.createTextNode(n.textContent));continue}if(n.nodeType!==1||DROP.has(n.tagName))continue;
+ if(!KEEP.has(n.tagName)){cleanInto(n,dst,base);continue}const el=document.createElement(n.tagName.toLowerCase());
+ if(n.tagName==='A'&&/\/rules\/index\.html$/.test(absUrl(n.getAttribute('href')||'',base)))continue;
+ if(n.tagName==='A'){const h=absUrl(n.getAttribute('href')||'',base),m=/\/rules\/([A-Za-z]{1,6}\d{1,3}[a-z]?)\.html/.exec(h);if(m){el.setAttribute('href',h);el.dataset.rule=m[1].toUpperCase()}else if(h){el.href=h;el.target='_blank';el.rel='noopener'}}
+ if(n.tagName==='IMG'){const u=absUrl(n.getAttribute('src')||'',base);if(!u)continue;el.src=u;el.alt=n.getAttribute('alt')||'';el.loading='lazy'}
+ if(n.tagName==='TD'||n.tagName==='TH'){const cs=+n.getAttribute('colspan');if(cs>1)el.colSpan=Math.min(cs,12)}
+ const k=/(red|blue)/.exec((n.getAttribute('class')||'')+' '+(n.getAttribute('style')||''));if(k&&(n.tagName==='DIV'||n.tagName==='P'||n.tagName==='BLOCKQUOTE'))el.className='rk-'+k[1];
+ cleanInto(n,el,base);dst.appendChild(el)}}
+function mdInto(md,dst,base){md=md.replace(/^---[\s\S]*?\n---\s*/,'');let list=null;
+ const inline=(t,el)=>{const re=/\*\*([^*]+)\*\*|\*([^*]+)\*|_([^_]+)_|\[([^\]]+)\]\(([^)\s]+)\)/g;let i=0,m;while((m=re.exec(t))){if(m.index>i)el.appendChild(document.createTextNode(t.slice(i,m.index)));let x;
+  if(m[1])(x=document.createElement('strong')).textContent=m[1];else if(m[2]||m[3])(x=document.createElement('em')).textContent=m[2]||m[3];else{x=document.createElement('a');x.textContent=m[4];const h=absUrl(m[5],base),r=/\/rules\/([A-Za-z]{1,6}\d{1,3}[a-z]?)\.html/.exec(h);if(r){x.setAttribute('href',h);x.dataset.rule=r[1].toUpperCase()}else if(h){x.href=h;x.target='_blank';x.rel='noopener'}}el.appendChild(x);i=re.lastIndex}if(i<t.length)el.appendChild(document.createTextNode(t.slice(i)))};
+ for(const raw of md.split(/\r?\n/)){const ln=raw.trimEnd();if(!ln.trim()){list=null;continue}let m;
+  if((m=/^(#{1,4})\s+(.*)$/.exec(ln))){list=null;if(/rules\/index\.html/.test(m[2]))continue;const h=document.createElement('h'+Math.min(m[1].length,4));inline(m[2],h);dst.appendChild(h)}
+  else if((m=/^\s*(?:[-*+]|\d+[.)]|[a-z][.)])\s+(.*)$/.exec(ln))){if(!list){list=document.createElement('ul');dst.appendChild(list)}const li=document.createElement('li');inline(m[1],li);list.appendChild(li)}
+  else{list=null;if(/\]\([^)]*rules\/index\.html\)\s*$/.test(ln)&&!/[.;:]\s*\[/.test(ln))continue;const p=document.createElement('p');inline(ln.replace(/^>\s?/,''),p);dst.appendChild(p)}}}
+function parseRule(text,base){const box=document.createElement('div');
+ if(/<(html|body|h1|p|div)[\s>]/i.test(text)){const d=new DOMParser().parseFromString(text,'text/html');cleanInto(d.body,box,base)}else mdInto(text,box,base);
+ return box.innerHTML.trim()}
+async function fetchRule(prog,code){const url=ruleUrl(prog,code),r=await fetch(url,{mode:'cors',credentials:'omit'});if(r.status===404)throw Object.assign(new Error('missing'),{k:'missing'});if(!r.ok)throw new Error('http '+r.status);
+ const h=parseRule(await r.text(),url);if(!h)throw new Error('empty');const c={h,at:Date.now()};LS.set(rkey(prog,code),c);pvMemo.delete(rkey(prog,code));return c}
+const pvMemo=new Map();
+function rulePreview(prog,code){const k=rkey(prog,code);if(pvMemo.has(k))return pvMemo.get(k);const c=ruleCache(prog,code);let t='';if(c){const d=document.createElement('div');d.innerHTML=c.h;d.querySelectorAll('h1').forEach(h=>h.remove());d.querySelectorAll('p,li,div,br,h2,h3,h4,td,th').forEach(el=>el.append(' '));t=d.textContent.replace(/\s+/g,' ').trim().slice(0,140)}pvMemo.set(k,t);return t}
+function savedNote(prog){const n=PROG[prog].rules.filter(r=>ruleCache(prog,r.code)).length;return n?`${n} of ${PROG[prog].rules.length} saved on this device`:''}
+const rvStack=[];
+function openRule(code,o){o=o||{};const ev=curEv(),prog=ev?ev.program:'V5RC',r=(ev?ruleMap(ev):new Map()).get(code)||{code,label:''},v=$('#ruleView'),c=$('#rvCard'),n=ev?viol().filter(e=>e.rules.includes(code)).length:0;
+ if(!o.back){if(!v.hidden&&c.dataset.code&&c.dataset.code!==code)rvStack.push(c.dataset.code);else if(v.hidden)rvStack.length=0}
+ c.dataset.code=code;v._o=o;
+ c.innerHTML=`<div class="fhead">${rvStack.length?'<button type="button" class="sx" data-rv="back" aria-label="Back">‹</button>':''}<h2 id="rvTitle" tabindex="-1">&lt;${esc(code)}&gt;</h2><button type="button" class="sx" data-rv="close" aria-label="Close">×</button></div>
+  <div class="fbody">${r.label?`<p class="hint">${esc(r.label)}${r.custom?' · added for this event':''}</p>`:''}<div id="rvBody" class="rtext"><p class="hint">Loading the official wording…</p></div>
+  ${n?`<p><button type="button" class="linkb" data-rv="log">${n} logged at this event · show in the log</button></p>`:''}${r.custom?'<p><button type="button" class="danger" data-rv="del">Remove this code from the event</button></p>':''}</div>
+  <div class="ffoot">${o.onPick?`<button type="button" class="primary" data-rv="pick">${o.picked?'Remove from entry':'Add to entry'}</button>`:''}<a class="ext" href="${ruleUrl(prog,code)}" target="_blank" rel="noopener">Official page</a><a class="ext" href="${PROG[prog].qa}${encodeURIComponent(code)}" target="_blank" rel="noopener">Q&amp;A</a></div>`;
+ v.hidden=false;document.body.style.overflow='hidden';c.scrollTop=0;$('#rvTitle').focus({preventScroll:true});
+ const body=$('#rvBody'),show=(h,note)=>{body.innerHTML='';const t=document.createElement('div');t.innerHTML=h;const box=document.createElement('div');cleanInto(t,box,ruleUrl(prog,code));while(box.firstChild)body.appendChild(box.firstChild);const s=document.createElement('p');s.className='rsrc';s.textContent=note;body.appendChild(s)};
+ const cached=ruleCache(prog,code);if(cached)show(cached.h,`Official wording from the ${PROG[prog].game} game manual on events.vex.com, saved ${ago(cached.at)}.`);
+ if(inClaude){if(!cached)body.innerHTML='<p>This copy runs inside Claude, which can’t reach events.vex.com. Use <b>Official page</b> below, or open the app from your GitHub site.</p>';return}
+ fetchRule(prog,code).then(f=>{if(c.dataset.code===code)show(f.h,`Official wording from the ${PROG[prog].game} game manual on events.vex.com, checked just now.`);if(S.tab==='rules')renderBody()})
+  .catch(err=>{if(c.dataset.code!==code||cached)return;
+   if(err&&err.k==='missing'){body.innerHTML=`<p>The game manual on events.vex.com has no page for &lt;${esc(code)}&gt;.${r.custom?' It was added by hand for this event.':' Check the rule number.'}</p>`;return}
+   if(navigator.onLine===false){body.innerHTML='<p>You’re offline and this rule hasn’t been saved on this device yet. When you’re back online, tap <b>Save official rules for offline use</b> on the Rules tab.</p>';return}
+   body.innerHTML=`<iframe class="rframe" src="${ruleUrl(prog,code)}" title="Official text of rule ${esc(code)}" referrerpolicy="no-referrer" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe><p class="rsrc">Shown straight from events.vex.com. If it’s blank, use Official page below.</p>`})}
+function closeRule(){$('#ruleView').hidden=true;$('#rvCard').innerHTML='';$('#rvCard').dataset.code='';rvStack.length=0;if($('#sheet').hidden)document.body.style.overflow=''}
+$('#ruleView').addEventListener('click',e=>{if(e.target.id==='ruleView')return closeRule();const a=e.target.closest('a[data-rule]');if(a){e.preventDefault();openRule(a.dataset.rule);return}
+ const b=e.target.closest('[data-rv]');if(!b)return;const k=b.dataset.rv,code=$('#rvCard').dataset.code,o=$('#ruleView')._o||{};
+ if(k==='close')closeRule();else if(k==='back'){const prev=rvStack.pop();if(prev)openRule(prev,{back:true})}else if(k==='pick'){if(o.onPick)o.onPick();closeRule()}
+ else if(k==='log'){closeRule();if(!$('#sheet').hidden)closeSheet();S.tab='log';S.f={out:'all',rule:code,ref:'',q:'',sort:'new'};prefs.tab='log';savePrefs();renderAll()}
+ else if(k==='del'){const ev=curEv();if(!writable(ev))return;ev.customRules=ev.customRules.filter(r=>r.code!==code);persistEvent(ev);closeRule();toast(`Removed <${code}>`)}});
+let savingRules=false;
+async function saveRules(){const ev=curEv();if(!ev||savingRules||inClaude)return;savingRules=true;const prog=ev.program,L=PROG[prog].rules,note=t=>{const el=$('#rulesSaved');if(el)el.textContent=t};let ok=0,fail=0,first=true;
+ for(let i=0;i<L.length;i+=4){const part=await Promise.all(L.slice(i,i+4).map(r=>fetchRule(prog,r.code).then(()=>1,e=>e&&e.k==='missing'?2:0)));ok+=part.filter(x=>x===1).length;fail+=part.filter(x=>x===0).length;
+  if(first&&fail&&!ok){note(navigator.onLine===false?'You’re offline. Try again with a connection.':'This browser can’t download rule text from events.vex.com. Tap a rule to read it straight from the site instead.');savingRules=false;return}first=false;note(`Saving… ${ok} of ${L.length}`)}
+ savingRules=false;note(savedNote(prog)+(fail?` (${fail} couldn’t be reached)`:''));if(S.tab==='rules')renderBody()}
+
 /* ---------- events wiring ---------- */
 const A={
  tab:b=>{S.tab=b.dataset.tab;prefs.tab=S.tab;savePrefs();renderAll();window.scrollTo(0,0)},
@@ -902,6 +991,7 @@ const A={
  score:b=>openScore(b.dataset.id),
  awp:b=>{const ev=curEv(),m=ev.matches.find(x=>x.id===b.dataset.id);if(!m)return;const k=b.dataset.k==='red'?'awpRed':'awpBlue';setAuton(m.id,{[k]:!(autonFor(m)||{})[k]})},
  mround:b=>{S.mround=b.dataset.k;shellKey='';renderAll()},fout:b=>{S.f.out=b.dataset.k;shellKey='';renderAll()},
+ rule:b=>openRule(b.dataset.k),saveRules:()=>saveRules(),
  ruleLog:b=>{S.tab='log';S.f={out:'all',rule:b.dataset.k,ref:'',q:'',sort:'new'};prefs.tab='log';savePrefs();renderAll()},
  export:b=>doExport(b.dataset.k),import:()=>openImport(),pickEv:b=>{setCur(b.dataset.id);closeSheet()},
  delRule:b=>{const ev=curEv();if(!writable(ev))return;ev.customRules=ev.customRules.filter(r=>r.code!==b.dataset.k);persistEvent(ev)},
@@ -921,7 +1011,7 @@ function sched(replace){const ev=curEv();if(!writable(ev))return toast('This eve
 
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const f=A[b.dataset.act];if(f){e.preventDefault();f(b)}});
 $('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('#ruleView').hidden)closeRule();else if(!$('#sheet').hidden)closeSheet()});
 const IN={mq:v=>S.mq=v,tq:v=>S.tq=v,fq:v=>S.f.q=v,rq:v=>S.rq=v};
 $('#main').addEventListener('input',e=>{const f=IN[e.target.id];if(f){f(e.target.value);renderBody()}});
 $('#main').addEventListener('change',e=>{const id=e.target.id,v=e.target.value;if(id==='tsort'){S.tsort=v;renderBody()}else if(id==='mfield'){const ev=curEv();if(ev){prefs.mfield={...(prefs.mfield||{}),[ev.id]:v};savePrefs();renderBody()}}else if(id==='frule'){S.f.rule=v;renderBody()}else if(id==='fref'){S.f.ref=v;renderBody()}else if(id==='fsort'){S.f.sort=v;renderBody()}else if(id==='eRef'){prefs.ref=v.trim();savePrefs();toast('Name saved');beatNow()}});
