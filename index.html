@@ -290,6 +290,29 @@ details.adv summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;
 .rtext .rk-blue{border-left:4px solid var(--blue);background:var(--bluet);padding:8px 12px;border-radius:6px;margin:10px 0}
 .rsrc{font-size:13px;color:var(--mut);border-top:1px solid var(--line);margin-top:16px;padding-top:8px}
 .bigbtn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 20px;border-radius:12px;background:var(--ink);color:var(--bg);font-weight:700;text-decoration:none}
+.rsum{background:var(--surf);border-left:4px solid var(--ink);border-radius:8px;padding:10px 14px;margin:0 0 14px;max-width:68ch}
+.rsum .rsl{font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+.rsum p{margin:6px 0;font-size:17px;line-height:1.5}
+.rsum .rpen{font-size:15px}
+.rsum a[data-rule]{font-weight:700}
+.tos{grid-column:1/-1;border-top-color:var(--amber)}
+.to{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.tos .tbh+.to,.topanel .tph+.to{border-top:0}
+.to .tol{flex:1 1 180px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.to .tol b{font-size:17px}
+.to .tol span{font-size:14px;color:var(--mut)}
+.to.red .tol b{color:var(--red)}.to.blue .tol b{color:var(--blue)}
+.to.run{background:var(--amber);color:#211800;border-radius:10px;padding:10px 12px;border-top:0;margin:4px 0}
+.to.run .tol b,.to.run .tol span{color:#211800}
+.to.run button{background:#fff;color:#211800;border:1px solid #211800;border-radius:9px;min-height:44px;padding:0 14px;font-weight:700}
+.toc{font:700 34px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;min-width:3.2ch;text-align:right}
+.toc.over{font-size:22px}
+.to.used .tol span::before{content:'✓ ';font-weight:700}
+.to.out .tol b{color:var(--mut);font-weight:600}
+.topanel{background:var(--surf);border-radius:12px;padding:10px 12px;margin-bottom:10px;border-top:4px solid var(--amber)}
+.tph{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tph b{font:700 20px/1 'Barlow Condensed',sans-serif}
+.tph span{font-size:14px;color:var(--mut)}
 .rframe{width:100%;height:min(60vh,560px);border:1px solid var(--line);border-radius:10px;background:#fff}
 .ffoot .ext{display:inline-flex;align-items:center;min-height:50px;padding:0 6px;font-weight:600;white-space:nowrap}
 .rread{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px}
@@ -383,8 +406,8 @@ const IQR=[
 const mk=a=>a.flatMap(([sec,s])=>s.split('|').map(x=>{const i=x.indexOf(' ');return{code:x.slice(0,i),label:x.slice(i+1),sec}}));
 const V5Q='https://events.vex.com/V5RC/2026-2027/QA/tag/',IQQ='https://events.vex.com/VIQRC/2026-2027/QA/tag/',VUQ='https://events.vex.com/VURC/2026-2027/QA/tag/';
 const PROG={
- V5RC:{label:'V5RC',long:'VEX V5 Robotics Competition',game:'Override',red:2,blue:2,auton:true,manual:'https://www.vexrobotics.com/override-manual',qa:V5Q,rules:mk(V5R),picks:['SG6','SG2','SG9','SG10','SG11','SG13','GG17','GG4']},
- VURC:{label:'VEX U',long:'VEX U Robotics Competition',game:'Override',red:1,blue:1,auton:true,manual:'https://www.vexrobotics.com/override-manual',qa:VUQ,rules:mk(V5R).concat(mk(VUR)),picks:['SG6','SG2','SG9','SG10','SG13','VUG4','GG17','GG4']},
+ V5RC:{label:'V5RC',long:'VEX V5 Robotics Competition',game:'Override',red:2,blue:2,auton:true,timeouts:true,manual:'https://www.vexrobotics.com/override-manual',qa:V5Q,rules:mk(V5R),picks:['SG6','SG2','SG9','SG10','SG11','SG13','GG17','GG4']},
+ VURC:{label:'VEX U',long:'VEX U Robotics Competition',game:'Override',red:1,blue:1,auton:true,timeouts:true,manual:'https://www.vexrobotics.com/override-manual',qa:VUQ,rules:mk(V5R).concat(mk(VUR)),picks:['SG6','SG2','SG9','SG10','SG13','VUG4','GG17','GG4']},
  VIQRC:{label:'VIQRC',long:'VEX IQ Robotics Competition',game:'Level Up',red:2,blue:0,auton:false,manual:'https://www.vexrobotics.com/level-up-manual',qa:IQQ,rules:mk(IQR),picks:['SG2','SG6','SG7','GG4','GG10','GG12','GG8','SG4']}};
 const rulesFor=ev=>PROG[ev.program].rules.concat(ev.customRules.map(r=>({code:r.code,label:r.label||'Added rule',sec:'Added for this event',custom:true})));
 const ruleMap=ev=>new Map(rulesFor(ev).map(r=>[r.code,r]));
@@ -409,6 +432,7 @@ function cleanEvent(d,id,where){d=d||{};const T=s=>str(s,10).toUpperCase().repla
   re:d.re&&typeof d.re==='object'&&num(d.re.id)?{id:num(d.re.id),div:num(d.re.div),divs:arr(d.re.divs).map(x=>({id:num(x&&x.id),name:str(x&&x.name,40)})).filter(x=>x.id).slice(0,40)}:null,
   info:d.info&&typeof d.info==='object'?{venue:str(d.info.venue,80),address:str(d.info.address,120),city:str(d.info.city,60),region:str(d.info.region,60),country:str(d.info.country,60),level:str(d.info.level,30),type:str(d.info.type,30),start:str(d.info.start,10),end:str(d.info.end,10)}:null}}
 function cleanEntry(d,id){if(!d||!okSeg(id))return null;
+ if(d.kind==='timeout'){const ts=arr(d.teams).map(t=>str(t,10).toUpperCase().replace(/\s+/g,'')).filter(Boolean).slice(0,3);if(!ts.length)return null;return{id,kind:'timeout',teams:ts,match:str(d.match,20).toUpperCase(),matchId:str(d.matchId,80),at:num(d.at),endedAt:num(d.endedAt),ref:str(d.ref,40)}}
  if(d.kind==='auton')return{id,kind:'auton',matchId:str(d.matchId,80),match:str(d.match,20),bonus:['red','blue','tie'].includes(d.bonus)?d.bonus:'',awpRed:!!d.awpRed,awpBlue:!!d.awpBlue,at:num(d.at)};
  const team=str(d.team,10).toUpperCase();if(!team)return null;
  return{id,kind:'entry',team,match:str(d.match,20).toUpperCase(),outcome:OUTS.includes(d.outcome)?d.outcome:'note',affecting:!!d.affecting,rules:arr(d.rules).map(r=>str(r,12).toUpperCase()).filter(Boolean).slice(0,8),notes:str(d.notes,600),ref:str(d.ref,40),at:num(d.at)}}
@@ -468,6 +492,39 @@ const tsort=(a,b)=>{const x=tkey(a),y=tkey(b);return x[0]-y[0]||x[1]-y[1]||Strin
 function allTeams(ev){const s=new Set(ev.teams.map(t=>t.num));for(const m of ev.matches)for(const t of m.red.concat(m.blue))s.add(t);for(const e of viol())s.add(e.team);return[...s].filter(Boolean).sort(tsort)}
 const teamName=(ev,t)=>(ev.teams.find(x=>x.num===t)||{}).name||'';
 const roundOf=l=>/^Q\d/i.test(l)?'Q':/^P(R)?\d/i.test(l)?'P':/^(R\d+|QF|SF|F|E)/i.test(l)?'E':'O';
+
+/* ---------- elimination time-outs <GG7> (V5RC and VEX U; VIQRC has none) ---------- */
+const TO_MS=18e4;
+const hasTO=ev=>!!(ev&&PROG[ev.program].timeouts);
+const akey=ts=>ts.slice().sort().join('-');
+const toId=ts=>'to-'+akey(ts);
+const toFor=ts=>S.entries.find(e=>e.kind==='timeout'&&e.id===toId(ts));
+const toEnd=e=>e.endedAt||e.at+TO_MS;
+const toLive=e=>!!e&&Date.now()<toEnd(e);
+const clock=ms=>{const t=Math.max(0,Math.ceil(ms/1e3));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
+function elimAlliances(ev){const seen=new Map();for(const m of ev.matches){if(roundOf(m.label)!=='E')continue;for(const ts of[m.red,m.blue]){if(ts.length&&!seen.has(akey(ts)))seen.set(akey(ts),ts.slice())}}
+ for(const e of S.entries)if(e.kind==='timeout'&&!seen.has(akey(e.teams)))seen.set(akey(e.teams),e.teams.slice());return[...seen.values()]}
+const nextElim=(ev,ts)=>{const k=akey(ts);return ev.matches.find(m=>roundOf(m.label)==='E'&&!m.scored&&(akey(m.red)===k||akey(m.blue)===k))||null};
+const elimOut=(ev,ts)=>{if(nextElim(ev,ts))return false;const k=akey(ts),ms=ev.matches.filter(m=>roundOf(m.label)==='E'&&m.scored&&(akey(m.red)===k||akey(m.blue)===k)),last=ms[ms.length-1],R=last&&resultOf(ev,last);return!!(R&&R.win&&R.win!=='tie'&&R.win!==sideIn(last,ts))};
+const sideIn=(m,ts)=>!m?'':akey(m.red)===akey(ts)?'red':akey(m.blue)===akey(ts)?'blue':'';
+function toRow(ev,ts,m,side,here,out){const e=toFor(ts),w=writable(ev),nm=`<b>${ts.map(esc).join(' ')}</b>`,cls=side?' '+side:'';
+ if(e&&toLive(e))return `<div class="to run${cls}"><div class="tol">${nm}<span>Time-out running${e.match?' · before '+esc(e.match):''}${e.ref?' · called by '+esc(e.ref):''}</span></div><b class="toc" data-to-end="${toEnd(e)}" data-k="${esc(e.id)}" role="timer" aria-label="Time left">${clock(toEnd(e)-Date.now())}</b>${w?`<button type="button" data-act="toEnd" data-k="${esc(e.id)}">End early</button>`:''}</div>`;
+ if(e)return `<div class="to used${cls}"><div class="tol">${nm}<span>Time-out used${e.match?' before '+esc(e.match):''}${e.at?' at '+esc(fmtT(e.at)):''}${e.endedAt?', ended early':''}</span></div>${w?`<button type="button" class="linkb" data-act="toClear" data-k="${esc(e.id)}">Undo</button>`:''}</div>`;
+ if(out)return `<div class="to out"><div class="tol">${nm}<span>Eliminated</span></div></div>`;
+ return `<div class="to free${cls}"><div class="tol">${nm}<span>Time-out available${m&&!here?' · next match '+esc(m.label):''}</span></div>${w?`<button type="button" class="ghost" data-act="toCall" data-t="${esc(ts.join(' '))}" data-id="${m?esc(m.id):''}">Call time-out</button>`:''}</div>`}
+const toNote=`<p class="hint">One 3-minute time-out per alliance, called between elimination matches and taken before that alliance’s next match. None during a match or after an alliance is eliminated. Ending early needs both alliances and the Head Referee to agree. <button type="button" class="linkb" data-act="rule" data-k="GG7">&lt;GG7&gt;</button></p>`;
+function toBlock(ev,m){if(!hasTO(ev)||roundOf(m.label)!=='E')return'';const sides=[['red',m.red],['blue',m.blue]].filter(([,t])=>t.length);if(!sides.length)return'';
+ return `<section class="tb tos"><div class="tbh"><b class="h">Time-outs</b></div>${sides.map(([sd,ts])=>{const t=m.scored?nextElim(ev,ts):m;return toRow(ev,ts,t,sd,t===m,!toFor(ts)&&elimOut(ev,ts))}).join('')}${toNote}</section>`}
+function toPanel(ev){if(!hasTO(ev))return'';
+ if(S.mround==='E'){const al=elimAlliances(ev).map(ts=>({ts,out:!toFor(ts)&&elimOut(ev,ts)})).sort((a,b)=>a.out-b.out);if(!al.length)return'';const inn=al.filter(a=>!a.out),left=inn.filter(a=>!toFor(a.ts)).length;
+  return `<section class="topanel" aria-label="Time-outs"><div class="tph"><b>Time-outs</b><span>${inn.length?`${left} of ${inn.length} alliance${inn.length===1?'':'s'} still in can call one`:'Eliminations are over'}</span></div>${al.map(a=>{const m=nextElim(ev,a.ts);return toRow(ev,a.ts,m,sideIn(m,a.ts),false,a.out)}).join('')}${toNote}</section>`}
+ const run=S.entries.filter(e=>e.kind==='timeout'&&toLive(e));
+ return run.length?`<section class="topanel" aria-label="Running time-outs">${run.map(e=>toRow(ev,e.teams,null,'')).join('')}</section>`:''}
+const toSeen=new Set();
+setInterval(()=>{const els=document.querySelectorAll('[data-to-end]');if(!els.length)return;const now=Date.now();let over=false;
+ els.forEach(el=>{const left=+el.dataset.toEnd-now;el.textContent=left>0?clock(left):'Time’s up';el.classList.toggle('over',left<=0);if(left>0){toSeen.add(el.dataset.k);return}over=true;
+  if(toSeen.has(el.dataset.k)){toSeen.delete(el.dataset.k);const e=S.entries.find(x=>x.id===el.dataset.k);toast(`Time-out over${e?' for '+e.teams.join(' '):''}`);try{navigator.vibrate&&navigator.vibrate([250,120,250])}catch(x){}}});
+ if(over)setTimeout(renderBody,1500)},1000);
 function stats(){const m=new Map();for(const e of viol()){let s=m.get(e.team);if(!s)m.set(e.team,s={minor:0,major:0,disabled:0,note:0,list:[]});s[e.outcome]++;s.list.push(e)}return m}
 function warns(list){const out=[],per={},mt={};
  for(const e of list){if(e.outcome!=='minor')continue;for(const r of e.rules){const k=r+'\u0001'+(e.match||'one match');per[k]=(per[k]||0)+1;(mt[r]||(mt[r]=new Set())).add(e.match||e.id)}}
@@ -498,7 +555,7 @@ V.matches={
   const ms=pool.filter(m=>(S.mround==='all'||roundOf(m.label)===S.mround)&&(!q||m.label.startsWith(q)||m.red.concat(m.blue).some(t=>t.includes(q))));
   const top=(nx?`<div class="upnext"><span class="lbl2">Up next${fld?' on '+esc(fld):''}</span><b>${esc(nx.label)}</b><span>${esc(mtime(nx))}${!fld&&nx.field?' · '+esc(nx.field):''}</span><button data-act="gotoMatch" data-id="${esc(nx.id)}">Open</button></div>`:'')
    +(L?`<p class="hint live" role="status">${L.err?esc(L.err):L.done?`Live from VEX Events, checked ${ago(L.done)}.`:'Checking VEX Events…'} <button type="button" class="linkb" data-act="liveNow">Refresh now</button></p>`:'');
-  return top+(ms.length?ms.map(m=>matchRow(ev,m,ST,nx,fld)).join(''):`<p class="none">No match fits${S.mq?` “${esc(S.mq)}”`:' these filters'}.</p>`)},
+  return toPanel(ev)+top+(ms.length?ms.map(m=>matchRow(ev,m,ST,nx,fld)).join(''):`<p class="none">No match fits${S.mq?` “${esc(S.mq)}”`:' these filters'}.</p>`)},
  after:ev=>{const s=$('#mfield');if(!s||document.activeElement===s)return;const F=[...new Set(ev.matches.map(m=>m.field).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
   s.hidden=F.length<2;s.innerHTML='<option value="">All fields</option>'+F.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join('');s.value=F.includes(mfieldOf(ev))?mfieldOf(ev):''}};
 const mfieldOf=ev=>{const f=(prefs.mfield||{})[ev.id]||'';return ev.matches.some(m=>m.field===f)?f:''};
@@ -516,7 +573,7 @@ function matchDetail(ev,m,ST){const P=PROG[ev.program];
  const R=resultOf(ev,m),manual=!ev.re&&writable(ev);
  const res=R?`<div class="result">${P.blue?(R.win==='tie'?`Tie ${R.rs}–${R.bs}`:`<span class="${R.win}">${R.win==='red'?'Red':'Blue'} won</span> ${Math.max(R.rs,R.bs)}–${Math.min(R.rs,R.bs)}`):`Score ${R.rs}`}${manual?`<button type="button" class="linkb" data-act="score" data-id="${esc(m.id)}">Edit score</button>`:''}</div>`
   :manual?`<div class="result"><span class="muted">No score yet</span><button type="button" data-act="score" data-id="${esc(m.id)}" class="ghost">Enter score</button></div>`:ev.re?'<div class="result"><span class="muted">Not scored yet. Scores appear here once Tournament Manager posts them.</span></div>':'';
- return `<div class="mdet">${res}${blocks||'<p class="none">No teams listed for this match.</p>'}${P.auton?autonBlock(m):''}</div>`}
+ return `<div class="mdet">${res}${toBlock(ev,m)}${blocks||'<p class="none">No teams listed for this match.</p>'}${P.auton?autonBlock(m):''}</div>`}
 function resultOf(ev,m){if(!m||!m.scored||(m.rs==null&&m.bs==null))return null;if(!PROG[ev.program].blue)return{rs:m.rs??m.bs,bs:null,win:null};const r=m.rs??0,b=m.bs??0;return{rs:r,bs:b,win:r>b?'red':b>r?'blue':'tie'}}
 function openScore(mid){const ev=curEv();if(!writable(ev))return toast('This event is view-only for you');const m=ev.matches.find(x=>x.id===mid);if(!m)return;const P=PROG[ev.program];
  const box=(id,lab,cls,v)=>`<label><span class="lt2">${cls?`<span class="sw ${cls}"></span>`:''}${lab}</span><input id="${id}" type="number" inputmode="numeric" min="0" max="9999" value="${v??''}"></label>`;
@@ -560,10 +617,10 @@ V.log={
  after:()=>{for(const[id,vals,all,key]of[['frule',usedRules(),'All rules','rule'],['fref',refs(),'All referees','ref']]){const s=$('#'+id);if(!s||document.activeElement===s)continue;s.innerHTML=`<option value="">${all}</option>`+vals.map(x=>`<option value="${esc(x)}">${id==='frule'?'&lt;'+esc(x)+'&gt;':esc(x)}</option>`).join('');if(!vals.includes(S.f[key]))S.f[key]='';s.value=S.f[key]}}};
 
 V.rules={
- shell:ev=>{const P=PROG[ev.program];return `<p class="pinfo"><b>${P.long}</b> · ${P.game}. Tap a rule to read its official wording from the <a href="${ruleIndexUrl(ev.program)}" target="_blank" rel="noopener">game manual on events.vex.com</a>${RELAY?'':' (it opens on VEX’s site)'}. The short descriptions here are only to help you find a rule; the manual and the <a href="${P.qa.replace('tag/','')}" target="_blank" rel="noopener">official Q&amp;A</a> govern.</p>${inClaude||!RELAY?'':`<div class="actions" style="margin:-4px 0 12px"><button type="button" data-act="saveRules">Save official rules for offline use</button><span class="hint" id="rulesSaved">${savedNote(ev.program)}</span></div>`}<div class="tools"><input id="rq" type="search" placeholder="Search: SG6, holding, expansion" value="${esc(S.rq)}" aria-label="Search rules" autocomplete="off"></div><div id="body"></div>
+ shell:ev=>{const P=PROG[ev.program];return `<p class="pinfo"><b>${P.long}</b> · ${P.game}. Tap a rule for a quick summary and its official wording in the <a href="${ruleIndexUrl(ev.program)}" target="_blank" rel="noopener">game manual on events.vex.com</a>${RELAY?'':' (it opens on VEX’s site)'}. Summaries are written for this app and leave out detail. They aren’t the official text; the manual and the <a href="${P.qa.replace('tag/','')}" target="_blank" rel="noopener">official Q&amp;A</a> govern.</p>${inClaude||!RELAY?'':`<div class="actions" style="margin:-4px 0 12px"><button type="button" data-act="saveRules">Save official rules for offline use</button><span class="hint" id="rulesSaved">${savedNote(ev.program)}</span></div>`}<div class="tools"><input id="rq" type="search" placeholder="Search: SG6, holding, expansion" value="${esc(S.rq)}" aria-label="Search rules" autocomplete="off"></div><div id="body"></div>
   <section class="card" style="margin-top:20px"><h2>Add a rule code</h2><p class="hint">Manuals update during the season. Add a new or renumbered rule so it shows up in the picker for this event.</p><form id="ruleForm" class="row"><label>Code<input id="rcode" placeholder="SG14" maxlength="12" required style="width:8em"></label><label class="grow">Short label<input id="rlabel" placeholder="What it covers" maxlength="80"></label><button class="primary">Add rule</button></form></section>`},
  body:ev=>{const P=PROG[ev.program],q=S.rq.trim().toLowerCase().replace(/[<>]/g,''),cnt={};viol().forEach(e=>e.rules.forEach(r=>cnt[r]=(cnt[r]||0)+1));
-  const R=rulesFor(ev).filter(r=>!q||r.code.toLowerCase().startsWith(q)||r.label.toLowerCase().includes(q));if(!R.length)return`<p class="none">No rule fits “${esc(S.rq)}”.</p>`;
+  const R=rulesFor(ev).filter(r=>!q||r.code.toLowerCase().startsWith(q)||r.label.toLowerCase().includes(q)||(!r.custom&&rulePreview(ev.program,r.code).toLowerCase().includes(q)));if(!R.length)return`<p class="none">No rule fits “${esc(S.rq)}”.</p>`;
   return [...new Set(R.map(r=>r.sec))].map(s=>`<section class="rsec"><h3>${esc(s)}</h3>${R.filter(r=>r.sec===s).map(r=>{const pv=r.custom?'':rulePreview(ev.program,r.code);return `<button type="button" class="rrow" data-act="rule" data-k="${esc(r.code)}"><b class="rc">&lt;${esc(r.code)}&gt;</b><span>${esc(r.label)}${pv?`<span class="pv">${esc(pv)}</span>`:''}</span>${cnt[r.code]?`<span class="cnt">${cnt[r.code]} logged</span>`:'<span></span>'}<span class="go" aria-hidden="true">›</span></button>`}).join('')}</section>`).join('')}};
 
 function whereText(ev){return ev.where==='room'?'Shared live: everyone who joins with the event code sees every entry as it’s logged. It keeps working offline and catches up when the connection returns.':ev.where==='device'?(LS.ok?'Kept in this browser on this device only. Export a backup before you clear the browser or switch devices.':'This browser isn’t keeping data. Export a backup before you close the page.'):ev.where==='mine'?'Saved to your account. Only you can see it, on any device where you open this page.':'Shared: anyone who can open this page sees it, and people with edit access can log entries. Every referee’s entries sync live.'}
@@ -685,6 +742,7 @@ function applySched(ev,list,replace){const byL=new Map(ev.matches.map(m=>[m.labe
 const csvCell=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return/[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
 function buildCSV(ev){const rows=[['Time','Match','Team','Outcome','Match affecting','Rules','Notes','Referee']].concat(viol().slice().sort((a,b)=>a.at-b.at).map(e=>[new Date(e.at).toLocaleString(),e.match,e.team,OL[e.outcome],e.affecting?'Yes':'',e.rules.map(r=>'<'+r+'>').join(' '),e.notes,e.ref]));
  const auto=S.entries.filter(e=>e.kind==='auton'&&(e.bonus||e.awpRed||e.awpBlue));if(auto.length){rows.push([],['Match','Autonomous Bonus','Red AWP','Blue AWP']);auto.forEach(a=>rows.push([a.match,a.bonus,a.awpRed?'Yes':'',a.awpBlue?'Yes':'']))}
+ const tos=S.entries.filter(e=>e.kind==='timeout').sort((a,b)=>a.at-b.at);if(tos.length){rows.push([],['Alliance','Time-out before','Called at','Ended early','Referee']);tos.forEach(e=>rows.push([e.teams.join(' '),e.match,new Date(e.at).toLocaleString(),e.endedAt?new Date(e.endedAt).toLocaleTimeString():'',e.ref]))}
  const played=ev.matches.filter(m=>resultOf(ev,m));if(played.length){rows.push([],PROG[ev.program].blue?['Match','Red teams','Blue teams','Red score','Blue score','Winner']:['Match','Teams','Score']);played.forEach(m=>{const R=resultOf(ev,m);rows.push(PROG[ev.program].blue?[m.label,m.red.join(' '),m.blue.join(' '),R.rs,R.bs,R.win==='tie'?'Tie':R.win==='red'?'Red':'Blue']:[m.label,m.red.join(' '),R.rs])})}
  return rows.map(r=>r.map(csvCell).join(',')).join('\r\n')}
 async function doExport(k){const ev=curEv();if(!ev)return;const base=(ev.name.replace(/[^\w-]+/g,'-').replace(/^-+|-+$/g,'')||'event').slice(0,40),name=`${base}-anomaly-log.${k}`;
@@ -917,6 +975,98 @@ if('serviceWorker' in navigator&&!inClaude&&(location.protocol==='https:'||/^(lo
    The wording belongs to VEX Robotics and is not stored in this app. Each rule is read
    from its official page on events.vex.com when opened, and a copy can be kept in this
    browser for offline use. */
+/* ---------- rule summaries ----------
+   Short plain-English summaries written for this app to help referees find and recall a rule.
+   They are NOT the official wording and leave out detail. The game manual on events.vex.com
+   and the official Q&A govern every call. Format: 'what the rule covers|what happens on a violation'. */
+const RSUM={
+ Override:{
+  S1:'Robots and how they’re driven must be safe and must not damage the field or Scoring Objects. A robot penalized under this must be re-inspected before it plays again.|Disable and/or DQ, at the Head Referee’s discretion',
+  S2:'Every student needs a responsible adult at the event for its whole length, and that adult follows the rules too.|Can mean removal from the event',
+  S3:'Each student needs a signed participant release on file for this event and season, or they can’t take part.|',
+  S4:'A robot may not end up completely outside the field during a match. Incidental overhang from normal play isn’t penalized.|Disabled for the rest of the match',
+  S5:'Drive Team Members wear eye protection whenever they’re at the field for a match. It’s also strongly recommended in the pits and queue.|',
+  G1:'Everyone at the event follows the Code of Conduct and treats others with respect.|May be a Major, judged case by case. Repeated poor conduct usually gets a final warning first, but one isn’t required',
+  G2:'Robots are designed, built and coded by students under the Student Centered Policy. Adult-built or adult-coded work becomes match affecting once it scores.|Judged case by case',
+  G3:'Apply the rules with common sense; accidental or edge-case infractions get some leniency. A robot part is illegal unless a rule allows it.|',
+  G4:'Every student must meet the Student Eligibility Policy. Report concerns to the Judge Advisor, Head Referee or Event Partner.|Possible removal from matches, loss of Skills scores or judged-award eligibility',
+  G5:'Robot rules apply even when a breach is accidental, and bending them on purpose for an advantage goes against the spirit of the game.|Can’t play until it passes inspection; deliberate circumvention is a DQ for that match',
+  GG1:'Only the team’s designated Drive Team Members run the robot from the Alliance Station, and they stay there all match. No active communication devices, audio earpieces, standing on objects or outside coaching.|Can be a Major, even if not match affecting',
+  GG2:'A team has its robot at the field for every assigned match, even if it’s broken, and shows up for alliance selection and elims.|A no-show gets zero Win, Autonomous Win, Autonomous and Strength of Schedule Points for that match',
+  GG3:'Robots arrive ready to play (batteries and air charged) and are placed promptly. A robot not placed before the start sits out that match.|Possible <G1> and/or removal from the match',
+  GG4:'Drive Team Members keep out of the field and off robots, field elements and Scoring Objects. Exceptions: match loading, and before the robot moves, powering on, plugging in or starting a program.|',
+  GG5:'Replays are rare. The Event Partner and Head Referee must both agree, for things like serious field faults or misapplied rules. One robot’s connection or control trouble never qualifies.|',
+  GG6:'A DQ zeroes that team for the match. In quals the other alliance may still win; in elims one DQ costs the whole alliance the match.|Zero score and zero Win, Autonomous Win, Autonomous and Strength of Schedule Points',
+  GG7:'Each elimination alliance gets one 3-minute time-out, called between matches and used before its next match. None in quals, during a match, during another alliance’s match, or after elimination.|',
+  GG8:'Robots may not intentionally drop parts or leave mechanisms on the field.|Minor or Major; check the rule’s notes for which',
+  GG9:'No intentionally grabbing, hooking or tangling with field elements, including designs that clamp one from several sides. An accidental snag freed right away with no effect on the match isn’t a violation.|',
+  GG10:'Red may choose to set up last in quals and elims. Once placed, robots shouldn’t be moved; if one team repositions, the other alliance may too.|',
+  GG11:'Connect the V5 Controller to the field before the match and keep it connected until you’re told to collect robots. A brief disconnect is only for troubleshooting with event staff.|',
+  GG12:'During autonomous, the drive team doesn’t touch robots, controllers, field connections or sensors. Disabling your own robot needs Head Referee approval and only for safety or damage, never strategy.|See <GG13>',
+  GG13:'Teams answer for their robots during autonomous. Any violation hands the opponents the Autonomous Bonus and makes the offending alliance ineligible for the Autonomous Win Point.|If both alliances violate, no one gets the Bonus. Intentional cases are also logged as Minor or Major',
+  GG14:'Don’t try to damage, tip or entangle opponents; incidental contact is part of the game. Robots should be built to stay upright under light contact.|Intentional or egregious cases can be a Major, even if not match affecting. Repeats may also be <G1> or <S1>',
+  GG15:'If a call between a defensive and an offensive robot is genuinely unclear, give the benefit of the doubt to the offensive robot. It’s a last resort, and it applies in autonomous too.|',
+  GG16:'You can’t force an opponent into breaking a rule. Their violation is excused and the forcing team is penalized instead.|Minor; Major if it changes the match in the forcing team’s favor',
+  GG17:'No trapping or holding an opponent for more than about 3 seconds in driver control. The count pauses once the robots are roughly 2 feet apart.|',
+  GG18:'Using Scoring Objects to do something a robot isn’t allowed to do is judged as if the robot did it.|',
+  SC1:'Scores are final 5 seconds after the match ends, or when everything has stopped if sooner. That’s a grace period, not extra play time. Referees avoid touching objects while scoring.|A robot built to exploit the grace period is a Minor; movement after the match doesn’t score',
+  SC2:'A Pin is Placed when it’s partly inside a Goal, or inside a Cup that holds a Placed Pin, with at most one Pin Half per section. A Cup counts when a Placed Pin sits partly inside it.|',
+  SC3:'Each visible Pin Half scores for the alliance of its color; yellow halves score only for the alliance that has claimed them. Halves hidden inside a Goal or an opaque Cup don’t score.|',
+  SC4:'A Toggle is claimed for a color only when it’s fully seated against its perimeter mounts and no robot is touching it. Otherwise it’s neutral, and no one gets that quadrant’s yellow Pin Halves.|',
+  SC5:'Yellow Pin Halves score for the alliance whose color the quadrant’s Toggle shows, or for the side with more robots in the Midfield at the end. A tie, or a yellow Toggle, gives no points.|',
+  SC6:'A robot ends in the Midfield if any part of it is inside the Midfield’s space when the match ends.|',
+  SC7:'Any autonomous violation, Minor or Major, gives the Autonomous Bonus to the other alliance. If both alliances violate, no one gets it.|Opponents automatically get the Autonomous Bonus',
+  SC8:'An alliance earns the Autonomous Win Point by ending autonomous with enough scored Pin Halves and enough Goals holding several, no violations, and neither robot touching the perimeter. Some higher-level events require more.|',
+  SG1:'At the start, each robot fits in an 18" cube, is still, is on its alliance’s side, touches at most one preload, and isn’t touching Goals, loaders, Toggles or other robots.|Minor. The robot is removed and sits out that match, but isn’t disqualified',
+  SG2:'Robots may expand during the match but must always fit inside a 24" × 24" footprint, even while raising mechanisms, and the team must be able to show it.|Incidental cases are Minor; repeats become a Major only in extreme circumstances',
+  SG3:'After the start, robots may grow taller, but every part must stay under a 50" height limit.|',
+  SG4:'Don’t intentionally take Scoring Objects off the field; one resting on the perimeter counts as off. Objects that leave by accident are put back nearby, and a slow return doesn’t affect the match.|Usually Minor; blatant or match-affecting cases can be a Major',
+  SG5:'Before the match, each robot’s preload Pin touches a robot of its alliance and nothing else: no other preloads, Scoring Objects, Goals, loaders, Load Zones or Toggles.|Handled under <SG1>',
+  SG6:'A robot may control only one Pin and one Cup at a time. With extras, it must stop and drop them, or if it can’t, return to a legal starting position.|While over the limit it can’t earn Midfield endgame points or interact with Toggles, Goals or Scoring Objects',
+  SG7:'During autonomous, don’t touch foam, Scoring Objects or field elements on the opponents’ side of the Autonomous Line, and don’t play mainly to disrupt opponents.|Any violation gives the opponents the Autonomous Bonus and Win Point (unless they also violated). Intentional or egregious cases are a Major and should be a DQ',
+  SG8:'Either alliance may enter the Midfield or go for the objects on the Autonomous Line, accepting that opponents can too. Reckless play meant to damage, tip, trap or draw penalties is banned.|',
+  SG9:'Don’t touch, add to or take from the opponents’ colored Goals, directly or indirectly (such as blocking one or pushing an opponent into it). Clearing your own alliance’s Goal is fine.|Incidental contact is usually Minor. Intentional or strategic cases, or adding or removing placed objects, are Major. Repeated Minors can escalate',
+  SG10:'Don’t knock or lift Placed Pins out of neutral Goals, directly or by pushing opponents into them.|Minor or Major; intentional or strategic cases are Major. Match affecting is judged by the points removed',
+  SG11:'Drive Team Members load only into their own alliance’s loaders, only in driver control, through the top or back. Keep hands off the loader’s underside and never pull on the perimeter.|Unsafe or excessive handling may be <S1> and/or <G1>',
+  SG12:'In Endgame, robots may not place Scoring Objects on the Midfield Goal. Incidental damage from opponents while in the Midfield is allowed; intentional damage isn’t.|Usually Minor; repeated Minors can escalate. Match affecting if it changes the result',
+  SG13:'In driver control, don’t contact protected opponents. Only pass briefly through the opposing Load Zones, don’t let objects pile up there, and don’t add to or take from their loaders.|Egregious cases are Major; repeated Minors can escalate'},
+ 'Level Up':{
+  S1:'Robots and how they’re driven must be safe and must not damage the field or Scoring Objects. Drive team members never step onto the field, even during setup.|Disable and/or DQ at the Head Referee’s discretion; re-inspection before playing again',
+  S2:'Every student needs a responsible adult at the event for its whole length, and that adult follows the rules too.|Can mean removal from the event',
+  S3:'Each student needs a participant release on file for this event and season, or they can’t take part.|',
+  G1:'Everyone at the event follows the Code of Conduct and treats others with respect.|May be a Major, judged case by case. Repeated poor conduct usually gets a final warning first, but one isn’t required',
+  G2:'Robots are designed, built and coded by students under the Student Centered Policy. Adult-built or adult-coded work becomes score affecting once it scores.|Judged case by case',
+  G3:'Apply the rules with common sense and the spirit of the game. Accidental or edge-case infractions get leniency; repeated or strategic ones are still penalized.|',
+  G4:'Every student must meet the eligibility policy for the program. Report suspected problems so they can be looked into.|Possible removal from matches, loss of Skills scores or judged-award eligibility',
+  G5:'Robot rules apply even when a breach is accidental, and bending them on purpose for an advantage goes against the spirit of the game.|Can’t play until it passes inspection',
+  GG1:'Only the team’s two drivers and one loader are in the Driver Station during a match, with no active communication or audio devices. Others may cheer but not coach.|Can be a Major, even if not score affecting',
+  GG2:'Each team’s robot must be at the Driver Station or on the field for its assigned match, even if it can’t run, or the team is a no-show.|The no-show team scores 0 for that match; its partner still plays and scores',
+  GG3:'Robots arrive ready to play and are placed promptly. A robot not placed before the start sits out that match.|Possible <G1> and/or removal from the match',
+  GG4:'Drivers don’t intentionally touch the field, robots or Scoring Objects during a match except where a rule allows it, and they stay out of the field.|',
+  GG5:'Replays are rare and need both the Event Partner and Head Referee to agree, for extreme cases such as field faults or objects not reset.|',
+  GG6:'A DQ zeroes the team: in qualification matches its partner still scores, in Finals the whole alliance scores 0, and a DQ’d Skills run scores 0.|',
+  GG7:'VIQRC tournaments have no time-outs.|',
+  GG8:'Robots may not intentionally drop parts or leave mechanisms on the field. Parts that fall off by accident can stay, or a drive team member can collect them during a reset.|',
+  GG9:'Robots must not damage the field or its elements (anything needing repair before the next match). Teams answer for their robot at all times, especially around Goals.|Accidental damage is usually Minor; egregious, intentional or repeated damage can be a Major',
+  GG10:'With the Head Referee’s OK, a team may reset a stuck, tipped or broken robot mid-match; any Scoring Objects it holds are taken out of play. Repairs are fine, but no adding or swapping parts.|Minor or Major if used strategically',
+  GG11:'Two drivers share the match and switch between 0:35 and 0:25 left. No driver drives for more than 35 seconds, and the first driver lets go once they switch.|At least a Minor; can be a Major, for example if points are scored past 35 seconds of driving',
+  GG12:'No robot movement or driver input before the timer starts or after it hits 0:00. Scoring from motion after the buzzer doesn’t count.|Minor',
+  GG13:'To end a match early, both teams stop their robots and set controllers down where the referee can see. The referee then ends the match and scores it.|',
+  GG14:'Drive team members may appeal a call right after the match while staying at the Driver Station. Once the Head Referee calls it final, there are no more appeals.|Pushing past that may be <G1>',
+  SC1:'Score only after the match ends and everything has stopped. Avoid touching robots or Scoring Objects; anything that must be moved needs team and Head Referee agreement and is recorded first.|',
+  SC2:'The Head Referee scores by sight; staff don’t review videos or photos. Only drive team members, not adults, raise score questions.|',
+  SC3:'A Bean Bag scores in a floor goal when it’s fully inside the zone, no robot is touching it, and it’s yellow or matches the goal’s color.|',
+  SC4:'A Bean Bag scores on a goal level when it’s yellow or the goal’s color, rests on that level or on another scored bag, touches no robot, and is on the field.|',
+  SC5:'Only yellow Bean Bags score on the L4 Goal: resting on its top surface, directly or on a scored bag, with no robot touching.|',
+  SG1:'At the start, a robot fits the size limit, sits in its start zone touching only the floor, perimeter and its preload, stays still until the timer starts, and matches how it was inspected.|Usually a Minor. The robot is removed until fixed; usually not a DQ',
+  SG2:'Robots stay inside an 11" × 24" footprint throughout the match, even when extended, and the team must be able to show it.|',
+  SG3:'After the start, robots may extend upward without limit. The 15" height limit applies only at the start.|',
+  SG4:'Bean Bags that leave the field stay out. One that was leaving but got deflected back still counts as out, and the Head Referee removes it.|',
+  SG5:'Each robot starts with one yellow preload Bean Bag that touches only that robot, not field elements (other than the floor), goals or other Scoring Objects.|',
+  SG6:'A robot may control only one Bean Bag at a time. With extras, it stops and removes them. Brief contact that barely moves a bag is fine.|',
+  SG7:'Load one Bean Bag at a time, only into your color’s Load Zone and only when no other bag is in it. Robots can’t touch a bag a person is holding, and spare bags stay off the field before the match.|In quals an accidental score-affecting case is a Minor and final notice, then a DQ next time. Any score-affecting case in Finals is Major. Intentional or repeated cases can be Major'}};
+const sumOf=(prog,code)=>{const g=(RSUM[(PROG[prog]||PROG.V5RC).game]||{})[code];if(!g)return null;const i=g.indexOf('|');return i<0?{t:g,p:''}:{t:g.slice(0,i),p:g.slice(i+1)}};
+const codeLinks=(h,prog)=>h.replace(/&lt;([A-Z]{1,6}\d{1,3})&gt;/g,(x,c)=>`<a href="${ruleUrl(prog,c)}" data-rule="${c}">&lt;${c}&gt;</a>`);
 const MANUAL={V5RC:'VEX_V5_Robotics_Competition_2026-2027_Override',VURC:'VEX_V5_Robotics_Competition_2026-2027_Override',VIQRC:'VEX_IQ_Robotics_Competition_2026-2027_Level_Up'};
 const ruleBase=prog=>`https://events.vex.com/storage/game_manual/${MANUAL[prog]||MANUAL.V5RC}/rules/`;
 const ruleUrl=(prog,code)=>ruleBase(prog)+encodeURIComponent(code)+'.html';
@@ -948,25 +1098,26 @@ const RELAY=(()=>{const c=window.REFLOG_CONFIG&&window.REFLOG_CONFIG.rulesRelay;
 async function fetchRule(prog,code){const url=ruleUrl(prog,code),r=await fetch(RELAY?`${RELAY}/?path=${encodeURIComponent(new URL(url).pathname)}`:url,{mode:'cors',credentials:'omit'});if(r.status===404)throw Object.assign(new Error('missing'),{k:'missing'});if(!r.ok)throw new Error('http '+r.status);
  const h=parseRule(await r.text(),url);if(!h)throw new Error('empty');const c={h,at:Date.now()};LS.set(rkey(prog,code),c);pvMemo.delete(rkey(prog,code));return c}
 const pvMemo=new Map();
-function rulePreview(prog,code){const k=rkey(prog,code);if(pvMemo.has(k))return pvMemo.get(k);const c=ruleCache(prog,code);let t='';if(c){const d=document.createElement('div');d.innerHTML=c.h;d.querySelectorAll('h1').forEach(h=>h.remove());d.querySelectorAll('p,li,div,br,h2,h3,h4,td,th').forEach(el=>el.append(' '));t=d.textContent.replace(/\s+/g,' ').trim().slice(0,140)}pvMemo.set(k,t);return t}
+function rulePreview(prog,code){const k=rkey(prog,code);if(pvMemo.has(k))return pvMemo.get(k);const c=ruleCache(prog,code);let t='';if(!c){const sm=sumOf(prog,code);t=sm?sm.t:''}if(c){const d=document.createElement('div');d.innerHTML=c.h;d.querySelectorAll('h1').forEach(h=>h.remove());d.querySelectorAll('p,li,div,br,h2,h3,h4,td,th').forEach(el=>el.append(' '));t=d.textContent.replace(/\s+/g,' ').trim().slice(0,140)}pvMemo.set(k,t);return t}
 function savedNote(prog){const n=PROG[prog].rules.filter(r=>ruleCache(prog,r.code)).length;return n?`${n} of ${PROG[prog].rules.length} saved on this device`:''}
 const rvStack=[];
-function openRule(code,o){o=o||{};const ev=curEv(),prog=ev?ev.program:'V5RC',r=(ev?ruleMap(ev):new Map()).get(code)||{code,label:''},v=$('#ruleView'),c=$('#rvCard'),n=ev?viol().filter(e=>e.rules.includes(code)).length:0;
+function openRule(code,o){o=o||{};const ev=curEv(),prog=ev?ev.program:'V5RC',sm=sumOf(prog,code),r=(ev?ruleMap(ev):new Map()).get(code)||{code,label:''},v=$('#ruleView'),c=$('#rvCard'),n=ev?viol().filter(e=>e.rules.includes(code)).length:0;
  if(!o.back){if(!v.hidden&&c.dataset.code&&c.dataset.code!==code)rvStack.push(c.dataset.code);else if(v.hidden)rvStack.length=0}
  c.dataset.code=code;v._o=o;
  c.innerHTML=`<div class="fhead">${rvStack.length?'<button type="button" class="sx" data-rv="back" aria-label="Back">‹</button>':''}<h2 id="rvTitle" tabindex="-1">&lt;${esc(code)}&gt;</h2><button type="button" class="sx" data-rv="close" aria-label="Close">×</button></div>
-  <div class="fbody">${r.label?`<p class="hint">${esc(r.label)}${r.custom?' · added for this event':''}</p>`:''}<div id="rvBody" class="rtext"><p class="hint">Loading the official wording…</p></div>
+  <div class="fbody">${r.label?`<p class="hint">${esc(r.label)}${r.custom?' · added for this event':''}</p>`:''}${sm?`<div class="rsum"><div class="rsl">Quick summary · not the official wording</div><p>${codeLinks(esc(sm.t),prog)}</p>${sm.p?`<p class="rpen"><b>If broken:</b> ${codeLinks(esc(sm.p),prog)}.</p>`:''}</div>`:''}<div id="rvBody" class="rtext"><p class="hint">${sm?'Checking for the official wording…':'Loading the official wording…'}</p></div>
   ${n?`<p><button type="button" class="linkb" data-rv="log">${n} logged at this event · show in the log</button></p>`:''}${r.custom?'<p><button type="button" class="danger" data-rv="del">Remove this code from the event</button></p>':''}</div>
   <div class="ffoot">${o.onPick?`<button type="button" class="primary" data-rv="pick">${o.picked?'Remove from entry':'Add to entry'}</button>`:''}<a class="ext" href="${ruleUrl(prog,code)}" target="_blank" rel="noopener">Official page</a><a class="ext" href="${PROG[prog].qa}${encodeURIComponent(code)}" target="_blank" rel="noopener">Q&amp;A</a></div>`;
  v.hidden=false;document.body.style.overflow='hidden';c.scrollTop=0;$('#rvTitle').focus({preventScroll:true});
  const body=$('#rvBody'),show=(h,note)=>{body.innerHTML='';const t=document.createElement('div');t.innerHTML=h;const box=document.createElement('div');cleanInto(t,box,ruleUrl(prog,code));while(box.firstChild)body.appendChild(box.firstChild);const s=document.createElement('p');s.className='rsrc';s.textContent=note;body.appendChild(s)};
  const cached=ruleCache(prog,code);if(cached)show(cached.h,`Official wording from the ${PROG[prog].game} game manual on events.vex.com, saved ${ago(cached.at)}.`);
- if(inClaude){if(!cached)body.innerHTML='<p>This copy runs inside Claude, which can’t reach events.vex.com. Use <b>Official page</b> below, or open the app from your GitHub site.</p>';return}
+ if(inClaude){if(!cached)body.innerHTML=sm?'<p class="rsrc">For the full official wording, use <b>Official page</b> below.</p>':'<p>This copy runs inside Claude, which can’t reach events.vex.com. Use <b>Official page</b> below, or open the app from your GitHub site.</p>';return}
  fetchRule(prog,code).then(f=>{if(c.dataset.code===code)show(f.h,`Official wording from the ${PROG[prog].game} game manual on events.vex.com, checked just now.`);if(S.tab==='rules')renderBody()})
   .catch(err=>{if(c.dataset.code!==code||cached)return;
    if(err&&err.k==='missing'){body.innerHTML=`<p>The game manual on events.vex.com has no page for &lt;${esc(code)}&gt;.${r.custom?' It was added by hand for this event.':' Check the rule number.'}</p>`;return}
    if(navigator.onLine===false){body.innerHTML='<p>You’re offline and this rule hasn’t been saved on this device yet. When you’re back online, tap <b>Save official rules for offline use</b> on the Rules tab.</p>';return}
-   body.innerHTML=`<p>${RELAY?'The rules relay didn’t answer, so open this rule on VEX’s site instead.':'VEX’s site doesn’t let other apps show its rule pages, so open this rule there.'}</p><p><a class="bigbtn" href="${ruleUrl(prog,code)}" target="_blank" rel="noopener">Open &lt;${esc(code)}&gt; on events.vex.com</a></p>${RELAY?'':'<p class="rsrc">To read rules right here and save them for offline use, the site owner can turn on the free rules relay (see “Rules relay” in the README).</p>'}`})}
+   body.innerHTML=sm?`<p><a class="bigbtn" href="${ruleUrl(prog,code)}" target="_blank" rel="noopener">Read the official &lt;${esc(code)}&gt;</a></p><p class="rsrc">Opens the game manual on events.vex.com. Always check the full wording and its violation notes before a close call.</p>`
+    :`<p>${RELAY?'The rules relay didn’t answer, so open this rule on VEX’s site instead.':'VEX’s site doesn’t let other apps show its rule pages, so open this rule there.'}</p><p><a class="bigbtn" href="${ruleUrl(prog,code)}" target="_blank" rel="noopener">Open &lt;${esc(code)}&gt; on events.vex.com</a></p>`})}
 function closeRule(){$('#ruleView').hidden=true;$('#rvCard').innerHTML='';$('#rvCard').dataset.code='';rvStack.length=0;if($('#sheet').hidden)document.body.style.overflow=''}
 $('#ruleView').addEventListener('click',e=>{if(e.target.id==='ruleView')return closeRule();const a=e.target.closest('a[data-rule]');if(a){e.preventDefault();openRule(a.dataset.rule);return}
  const b=e.target.closest('[data-rv]');if(!b)return;const k=b.dataset.rv,code=$('#rvCard').dataset.code,o=$('#ruleView')._o||{};
@@ -994,6 +1145,11 @@ const A={
  awp:b=>{const ev=curEv(),m=ev.matches.find(x=>x.id===b.dataset.id);if(!m)return;const k=b.dataset.k==='red'?'awpRed':'awpBlue';setAuton(m.id,{[k]:!(autonFor(m)||{})[k]})},
  mround:b=>{S.mround=b.dataset.k;shellKey='';renderAll()},fout:b=>{S.f.out=b.dataset.k;shellKey='';renderAll()},
  rule:b=>openRule(b.dataset.k),saveRules:()=>saveRules(),
+ toCall:b=>{const ev=curEv();if(!hasTO(ev))return;if(!writable(ev))return toast('This event is view-only for you');const ts=(b.dataset.t||'').split(' ').filter(Boolean);if(!ts.length)return;
+  const old=toFor(ts);if(old)return toast(toLive(old)?'That alliance’s time-out is already running':'That alliance has already used its time-out');const m=ev.matches.find(x=>x.id===b.dataset.id);
+  persistEntry({id:toId(ts),kind:'timeout',teams:ts,match:m?m.label:'',matchId:m?m.id:'',at:Date.now(),endedAt:0,ref:str(prefs.ref,40)});toast(`3-minute time-out started for ${ts.join(' ')}`)},
+ toEnd:b=>{const ev=curEv(),e=S.entries.find(x=>x.id===b.dataset.k&&x.kind==='timeout');if(!e||!writable(ev))return;persistEntry({...e,endedAt:Date.now()});toast('Time-out ended early')},
+ toClear:b=>{const ev=curEv(),e=S.entries.find(x=>x.id===b.dataset.k&&x.kind==='timeout');if(!e||!writable(ev))return;removeEntry(e.id);toast(`${e.teams.join(' ')} has its time-out again`,{label:'Undo',fn:()=>persistEntry(e)})},
  ruleLog:b=>{S.tab='log';S.f={out:'all',rule:b.dataset.k,ref:'',q:'',sort:'new'};prefs.tab='log';savePrefs();renderAll()},
  export:b=>doExport(b.dataset.k),import:()=>openImport(),pickEv:b=>{setCur(b.dataset.id);closeSheet()},
  delRule:b=>{const ev=curEv();if(!writable(ev))return;ev.customRules=ev.customRules.filter(r=>r.code!==b.dataset.k);persistEvent(ev)},
