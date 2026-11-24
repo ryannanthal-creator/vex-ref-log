@@ -289,6 +289,7 @@ details.adv summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;
 .rtext .rk-red{border-left:4px solid var(--red);background:var(--redt);padding:8px 12px;border-radius:6px;margin:10px 0}
 .rtext .rk-blue{border-left:4px solid var(--blue);background:var(--bluet);padding:8px 12px;border-radius:6px;margin:10px 0}
 .rsrc{font-size:13px;color:var(--mut);border-top:1px solid var(--line);margin-top:16px;padding-top:8px}
+.bigbtn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 20px;border-radius:12px;background:var(--ink);color:var(--bg);font-weight:700;text-decoration:none}
 .rframe{width:100%;height:min(60vh,560px);border:1px solid var(--line);border-radius:10px;background:#fff}
 .ffoot .ext{display:inline-flex;align-items:center;min-height:50px;padding:0 6px;font-weight:600;white-space:nowrap}
 .rread{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px}
@@ -559,7 +560,7 @@ V.log={
  after:()=>{for(const[id,vals,all,key]of[['frule',usedRules(),'All rules','rule'],['fref',refs(),'All referees','ref']]){const s=$('#'+id);if(!s||document.activeElement===s)continue;s.innerHTML=`<option value="">${all}</option>`+vals.map(x=>`<option value="${esc(x)}">${id==='frule'?'&lt;'+esc(x)+'&gt;':esc(x)}</option>`).join('');if(!vals.includes(S.f[key]))S.f[key]='';s.value=S.f[key]}}};
 
 V.rules={
- shell:ev=>{const P=PROG[ev.program];return `<p class="pinfo"><b>${P.long}</b> · ${P.game}. Tap a rule to read its official wording, loaded from the <a href="${ruleIndexUrl(ev.program)}" target="_blank" rel="noopener">game manual on events.vex.com</a>. The short descriptions here are only to help you find a rule; the manual and the <a href="${P.qa.replace('tag/','')}" target="_blank" rel="noopener">official Q&amp;A</a> govern.</p>${inClaude?'':`<div class="actions" style="margin:-4px 0 12px"><button type="button" data-act="saveRules">Save official rules for offline use</button><span class="hint" id="rulesSaved">${savedNote(ev.program)}</span></div>`}<div class="tools"><input id="rq" type="search" placeholder="Search: SG6, holding, expansion" value="${esc(S.rq)}" aria-label="Search rules" autocomplete="off"></div><div id="body"></div>
+ shell:ev=>{const P=PROG[ev.program];return `<p class="pinfo"><b>${P.long}</b> · ${P.game}. Tap a rule to read its official wording from the <a href="${ruleIndexUrl(ev.program)}" target="_blank" rel="noopener">game manual on events.vex.com</a>${RELAY?'':' (it opens on VEX’s site)'}. The short descriptions here are only to help you find a rule; the manual and the <a href="${P.qa.replace('tag/','')}" target="_blank" rel="noopener">official Q&amp;A</a> govern.</p>${inClaude||!RELAY?'':`<div class="actions" style="margin:-4px 0 12px"><button type="button" data-act="saveRules">Save official rules for offline use</button><span class="hint" id="rulesSaved">${savedNote(ev.program)}</span></div>`}<div class="tools"><input id="rq" type="search" placeholder="Search: SG6, holding, expansion" value="${esc(S.rq)}" aria-label="Search rules" autocomplete="off"></div><div id="body"></div>
   <section class="card" style="margin-top:20px"><h2>Add a rule code</h2><p class="hint">Manuals update during the season. Add a new or renumbered rule so it shows up in the picker for this event.</p><form id="ruleForm" class="row"><label>Code<input id="rcode" placeholder="SG14" maxlength="12" required style="width:8em"></label><label class="grow">Short label<input id="rlabel" placeholder="What it covers" maxlength="80"></label><button class="primary">Add rule</button></form></section>`},
  body:ev=>{const P=PROG[ev.program],q=S.rq.trim().toLowerCase().replace(/[<>]/g,''),cnt={};viol().forEach(e=>e.rules.forEach(r=>cnt[r]=(cnt[r]||0)+1));
   const R=rulesFor(ev).filter(r=>!q||r.code.toLowerCase().startsWith(q)||r.label.toLowerCase().includes(q));if(!R.length)return`<p class="none">No rule fits “${esc(S.rq)}”.</p>`;
@@ -943,7 +944,8 @@ function mdInto(md,dst,base){md=md.replace(/^---[\s\S]*?\n---\s*/,'');let list=n
 function parseRule(text,base){const box=document.createElement('div');
  if(/<(html|body|h1|p|div)[\s>]/i.test(text)){const d=new DOMParser().parseFromString(text,'text/html');cleanInto(d.body,box,base)}else mdInto(text,box,base);
  return box.innerHTML.trim()}
-async function fetchRule(prog,code){const url=ruleUrl(prog,code),r=await fetch(url,{mode:'cors',credentials:'omit'});if(r.status===404)throw Object.assign(new Error('missing'),{k:'missing'});if(!r.ok)throw new Error('http '+r.status);
+const RELAY=(()=>{const c=window.REFLOG_CONFIG&&window.REFLOG_CONFIG.rulesRelay;return typeof c==='string'&&/^https:\/\//.test(c.trim())?c.trim().replace(/\/+$/,''):''})();
+async function fetchRule(prog,code){const url=ruleUrl(prog,code),r=await fetch(RELAY?`${RELAY}/?path=${encodeURIComponent(new URL(url).pathname)}`:url,{mode:'cors',credentials:'omit'});if(r.status===404)throw Object.assign(new Error('missing'),{k:'missing'});if(!r.ok)throw new Error('http '+r.status);
  const h=parseRule(await r.text(),url);if(!h)throw new Error('empty');const c={h,at:Date.now()};LS.set(rkey(prog,code),c);pvMemo.delete(rkey(prog,code));return c}
 const pvMemo=new Map();
 function rulePreview(prog,code){const k=rkey(prog,code);if(pvMemo.has(k))return pvMemo.get(k);const c=ruleCache(prog,code);let t='';if(c){const d=document.createElement('div');d.innerHTML=c.h;d.querySelectorAll('h1').forEach(h=>h.remove());d.querySelectorAll('p,li,div,br,h2,h3,h4,td,th').forEach(el=>el.append(' '));t=d.textContent.replace(/\s+/g,' ').trim().slice(0,140)}pvMemo.set(k,t);return t}
@@ -964,7 +966,7 @@ function openRule(code,o){o=o||{};const ev=curEv(),prog=ev?ev.program:'V5RC',r=(
   .catch(err=>{if(c.dataset.code!==code||cached)return;
    if(err&&err.k==='missing'){body.innerHTML=`<p>The game manual on events.vex.com has no page for &lt;${esc(code)}&gt;.${r.custom?' It was added by hand for this event.':' Check the rule number.'}</p>`;return}
    if(navigator.onLine===false){body.innerHTML='<p>You’re offline and this rule hasn’t been saved on this device yet. When you’re back online, tap <b>Save official rules for offline use</b> on the Rules tab.</p>';return}
-   body.innerHTML=`<iframe class="rframe" src="${ruleUrl(prog,code)}" title="Official text of rule ${esc(code)}" referrerpolicy="no-referrer" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe><p class="rsrc">Shown straight from events.vex.com. If it’s blank, use Official page below.</p>`})}
+   body.innerHTML=`<p>${RELAY?'The rules relay didn’t answer, so open this rule on VEX’s site instead.':'VEX’s site doesn’t let other apps show its rule pages, so open this rule there.'}</p><p><a class="bigbtn" href="${ruleUrl(prog,code)}" target="_blank" rel="noopener">Open &lt;${esc(code)}&gt; on events.vex.com</a></p>${RELAY?'':'<p class="rsrc">To read rules right here and save them for offline use, the site owner can turn on the free rules relay (see “Rules relay” in the README).</p>'}`})}
 function closeRule(){$('#ruleView').hidden=true;$('#rvCard').innerHTML='';$('#rvCard').dataset.code='';rvStack.length=0;if($('#sheet').hidden)document.body.style.overflow=''}
 $('#ruleView').addEventListener('click',e=>{if(e.target.id==='ruleView')return closeRule();const a=e.target.closest('a[data-rule]');if(a){e.preventDefault();openRule(a.dataset.rule);return}
  const b=e.target.closest('[data-rv]');if(!b)return;const k=b.dataset.rv,code=$('#rvCard').dataset.code,o=$('#ruleView')._o||{};
@@ -974,7 +976,7 @@ $('#ruleView').addEventListener('click',e=>{if(e.target.id==='ruleView')return c
 let savingRules=false;
 async function saveRules(){const ev=curEv();if(!ev||savingRules||inClaude)return;savingRules=true;const prog=ev.program,L=PROG[prog].rules,note=t=>{const el=$('#rulesSaved');if(el)el.textContent=t};let ok=0,fail=0,first=true;
  for(let i=0;i<L.length;i+=4){const part=await Promise.all(L.slice(i,i+4).map(r=>fetchRule(prog,r.code).then(()=>1,e=>e&&e.k==='missing'?2:0)));ok+=part.filter(x=>x===1).length;fail+=part.filter(x=>x===0).length;
-  if(first&&fail&&!ok){note(navigator.onLine===false?'You’re offline. Try again with a connection.':'This browser can’t download rule text from events.vex.com. Tap a rule to read it straight from the site instead.');savingRules=false;return}first=false;note(`Saving… ${ok} of ${L.length}`)}
+  if(first&&fail&&!ok){note(navigator.onLine===false?'You’re offline. Try again with a connection.':RELAY?'The rules relay didn’t answer. Try again later.':'VEX’s site doesn’t allow saving rules into the app yet. Tap a rule to open it on events.vex.com.');savingRules=false;return}first=false;note(`Saving… ${ok} of ${L.length}`)}
  savingRules=false;note(savedNote(prog)+(fail?` (${fail} couldn’t be reached)`:''));if(S.tab==='rules')renderBody()}
 
 /* ---------- events wiring ---------- */
