@@ -2,7 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121317">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ref Log">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>VEX Ref Log</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,6 +25,7 @@
 :root{color-scheme:light dark;--bg:light-dark(#ffffff,#111215);--ink:light-dark(#16171b,#eceef2);--mut:light-dark(#585d69,#a3a9b5);--line:light-dark(#e3e5ea,#2b2e35);--line2:light-dark(#c6c9d1,#454952);--surf:light-dark(#f4f5f7,#1a1c21);--band:#121317;--red:light-dark(#d0122f,#ff5a6c);--blue:light-dark(#1d4ed8,#7aa3ff);--redt:light-dark(#fdebee,#33151a);--bluet:light-dark(#e8eefd,#142039);--amber:#f5b000;--warnbg:light-dark(#fff5d6,#2d2510);--warnink:light-dark(#6b4500,#ffd36b);--focus:light-dark(#1d4ed8,#9bbcff)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
 html{scroll-padding-top:140px}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif;overflow-x:clip}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -25,7 +34,8 @@ a{color:var(--blue)}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 h2{font:700 26px/1.1 'Barlow Condensed',sans-serif;margin:0 0 8px;letter-spacing:-.01em}
 h3{font:700 19px/1.2 'Barlow Condensed',sans-serif;margin:18px 0 6px}
-.top{position:sticky;top:0;z-index:5;background:var(--band);color:#f1f2f5;padding:8px max(16px,4vw) 0}
+.top{position:sticky;top:0;z-index:5;background:var(--band);color:#f1f2f5;padding:max(8px,env(safe-area-inset-top,0px)) max(16px,4vw,env(safe-area-inset-right,0px)) 0 max(16px,4vw,env(safe-area-inset-left,0px))}
+button,a,label,summary{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .bar{max-width:960px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"ev add" "sy add";column-gap:12px;align-items:center}
 .evbtn{grid-area:ev;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:none;border:0;padding:6px 0;text-align:left;min-height:48px;color:#fff}
 .evbtn .n{font:700 clamp(24px,4vw,32px)/1.05 'Barlow Condensed',sans-serif;display:flex;align-items:center;gap:8px;max-width:100%}
@@ -39,6 +49,8 @@ h3{font:700 19px/1.2 'Barlow Condensed',sans-serif;margin:18px 0 6px}
 .tabs{max-width:960px;margin:4px auto 0;display:flex;overflow-x:auto;scrollbar-width:none}
 .tabs button{flex:1 0 auto;background:none;border:0;border-bottom:3px solid transparent;color:#b8bcc6;font:600 16px/1 Barlow,sans-serif;padding:12px 14px 11px;min-height:46px}
 .tabs button[aria-selected=true]{color:#fff;border-bottom-color:var(--amber)}
+.tabs svg{display:none;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.fab{display:none}
 main{max-width:960px;margin:0 auto;padding:16px max(16px,4vw) 96px}
 .sample{margin:0 0 12px;font-size:14px;color:var(--mut)}
 .tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
@@ -112,7 +124,7 @@ label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:15px}
 .none{color:var(--mut)}
 .empty{border:1px dashed var(--line2);border-radius:12px;padding:24px;text-align:left}
 .empty p{color:var(--mut);margin:4px 0 14px;max-width:52ch}
-.primary,.ghost,.danger,.actions button,.empty button{min-height:44px;border-radius:9px;border:1px solid var(--line2);background:var(--bg);padding:0 16px;font-weight:700}
+.primary,.ghost,.danger,.actions button,.empty button,.ffoot button{min-height:44px;border-radius:9px;border:1px solid var(--line2);background:var(--bg);padding:0 16px;font-weight:700}
 .primary{background:var(--ink)!important;color:var(--bg)!important;border-color:var(--ink)!important}
 .danger{color:var(--red)!important;border-color:color-mix(in srgb,var(--red) 50%,transparent)!important}
 .danger.solid{background:var(--red)!important;color:#fff!important}
@@ -150,9 +162,26 @@ label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:15px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
 .row .grow{flex:1 1 220px}
 .ex{background:var(--surf);border-radius:8px;padding:8px 10px;font:500 14px/1.4 ui-monospace,monospace;overflow-x:auto;margin:6px 0 8px}
-.sheet{position:fixed;inset:0;z-index:20;background:rgb(0 0 0/.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet{position:fixed;left:0;right:0;top:var(--vvt,0px);height:var(--vvh,100%);z-index:20;background:rgb(0 0 0/.5);display:flex;align-items:flex-end;justify-content:center}
 .sheet[hidden]{display:none}
-.card2{background:var(--bg);color:var(--ink);width:min(640px,100%);max-height:94%;overflow:auto;border-radius:16px 16px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.card2{position:relative;background:var(--bg);color:var(--ink);width:min(640px,100%);max-height:94%;overflow:auto;overscroll-behavior:contain;border-radius:16px 16px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.sx{position:absolute;top:10px;right:10px;z-index:2;width:44px;height:44px;border-radius:50%;border:0;background:var(--surf);color:var(--ink);font-size:24px;line-height:1}
+.card2>h2:first-of-type{padding-right:48px}
+.card2.full{padding:0}
+.fhead{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 12px 10px 16px}
+.fhead h2{margin:0;flex:1}
+.fhead .sx{position:static;flex:none}
+.fbody{padding:4px 16px 16px}
+.card2.full>form{min-height:100%;display:flex;flex-direction:column}
+.card2.full .fbody{flex:1}
+.sheet:not([hidden])~.toast{top:calc(env(safe-area-inset-top,0px) + 12px);bottom:auto!important}
+.ffoot{position:sticky;bottom:0;z-index:2;display:flex;gap:8px;align-items:center;background:var(--bg);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.ffoot .primary{flex:1;max-width:260px;min-height:50px;font-size:17px}
+.ffoot button{min-height:50px}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.lt2{display:flex;gap:6px;align-items:baseline}
+.byline{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;font-size:15px;color:var(--mut);margin-top:12px}
+.byline b{color:var(--ink)}
 .card2 h2:focus{outline:none}
 .card2 form>label,.card2>label{margin-top:12px}
 .outs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;border:0;padding:0;margin:14px 0 6px}
@@ -214,7 +243,33 @@ details.adv summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:#16171b;color:#fff;border-radius:12px;padding:10px 12px 10px 16px;display:flex;gap:12px;align-items:center;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgb(0 0 0/.25)}
 .toast[hidden]{display:none}
 .toast button{background:none;border:1px solid #5b5f69;color:var(--amber);border-radius:8px;min-height:38px;padding:0 12px;font-weight:700}
-@media(min-width:700px){.sheet{align-items:center}.card2{border-radius:16px;padding:24px}.bar{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"ev sy add"}.sync{padding-bottom:0}}
+@media(min-width:700px){.sheet{align-items:center}.card2{border-radius:16px;padding:24px}.card2.full{padding:0}.bar{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"ev sy add"}.sync{padding-bottom:0}}
+@media(max-width:899px){
+.top{padding-bottom:8px}
+.bar{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"ev sy";column-gap:10px}
+.evbtn{min-height:44px;padding:2px 0}
+.evbtn .n{font-size:24px}
+.evbtn .m{font-size:13px}
+.sync{padding-bottom:0;max-width:44vw;overflow:hidden;text-overflow:ellipsis}
+.add{display:none}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:8;max-width:none;margin:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--band);border-top:1px solid #2b2d34;padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.tabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:60px;padding:6px 2px 7px;font-size:13px;border-bottom:0;border-top:3px solid transparent}
+.tabs button[aria-selected=true]{border-top-color:var(--amber)}
+.tabs svg{display:block}
+main{padding-bottom:calc(160px + env(safe-area-inset-bottom,0px))}
+.fab{display:inline-flex;align-items:center;gap:6px;position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:7;min-height:56px;padding:0 22px 0 16px;border:0;border-radius:28px;background:var(--amber);color:#211800;font:700 18px/1 Barlow,sans-serif;box-shadow:0 6px 18px rgb(0 0 0/.28)}
+.fab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}
+.toast{bottom:calc(146px + env(safe-area-inset-bottom,0px))}
+.sheet:not([hidden])~.toast,.sheet:not([hidden])~.fab~.toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+.card2.full{width:100%;height:100%;max-height:none;border-radius:0}
+.sheet:has(.card2.full){align-items:stretch}
+.mdet{padding:8px;gap:8px}
+.tb{padding:10px}
+.quick{gap:5px;margin-top:8px}
+.quick button{min-height:50px}
+html{scroll-padding-top:90px}
+.mrow,.trow{scroll-margin-top:90px}
+}
 @media(max-width:600px){.lrow{grid-template-columns:auto auto auto minmax(0,1fr)}.lx{grid-column:1/-1}.rrow{grid-template-columns:4.4em minmax(0,1fr) auto}.rrow a,.rrow .x{grid-column:3}.rrow .cnt{grid-column:3;grid-row:1}.rrow a{display:none}.mhead{grid-template-columns:4.5em minmax(0,1fr) minmax(0,1fr)}.mlab{padding:10px 4px 10px 10px}.mlab .n{display:none}.tchip{font-size:17px}.quick button{font-size:15px}}
 @media(prefers-reduced-motion:no-preference){.sheet:not([hidden]) .card2{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
 </style>
@@ -224,14 +279,15 @@ details.adv summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;
   <div class="bar">
     <button class="evbtn" id="evBtn" data-act="events" aria-haspopup="dialog"><span class="n"><span id="evName">VEX Ref Log</span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></span><span class="m" id="evMeta">Match anomaly log</span></button>
     <span class="sync" id="sync"></span>
-    <button class="add" id="addBtn" data-act="newBlank">+ Entry</button>
+    <button class="add" id="addBtn" data-act="newBlank">+ Log</button>
   </div>
   <nav class="tabs" aria-label="Sections">
-    <button data-act="tab" data-tab="matches">Matches</button><button data-act="tab" data-tab="teams">Teams</button><button data-act="tab" data-tab="log">Log</button><button data-act="tab" data-tab="rules">Rules</button><button data-act="tab" data-tab="event">Event</button>
+    <button data-act="tab" data-tab="matches"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14"/></svg><span>Matches</span></button><button data-act="tab" data-tab="teams"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.8-3 3-4.6 5.5-4.6s4.7 1.6 5.5 4.6M15 14.9c.6-.3 1.3-.5 2-.5 2 0 3.5 1.4 4 4.6"/></svg><span>Teams</span></button><button data-act="tab" data-tab="log"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg><span>Log</span></button><button data-act="tab" data-tab="rules"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H7a2 2 0 0 0-2 2z"/><path d="M5 20a2 2 0 0 0 2 2h12v-4"/></svg><span>Rules</span></button><button data-act="tab" data-tab="event"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Event</span></button>
   </nav>
 </header>
 <main id="main"></main>
 <div id="sheet" class="sheet" hidden><div class="card2" id="sheetCard" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div></div>
+<button class="fab" type="button" data-act="newBlank" aria-label="Log an entry"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Log</span></button>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <script src="config.js"></script>
 <script>
@@ -391,7 +447,7 @@ const emptyBox=(h,p,btn,tab)=>`<div class="empty"><h2>${h}</h2><p>${p}</p>${btn?
 const V={};
 V.matches={
  shell:ev=>`${ev.sample?'<p class="sample">Example event with sample entries. Pick a real event from the event menu at the top.</p>':''}<div class="tools"><div class="seg" role="group" aria-label="Round">${[['all','All'],['Q','Quals'],['E','Elims'],['P','Practice']].map(([k,l])=>`<button data-act="mround" data-k="${k}" aria-pressed="${S.mround===k}">${l}</button>`).join('')}</div><select id="mfield" aria-label="Field" hidden></select><input id="mq" type="search" placeholder="Find a team or match" value="${esc(S.mq)}" aria-label="Find a team or match" autocomplete="off"></div><div id="body"></div>`,
- body:ev=>{if(!ev.matches.length)return ev.sku?`<div class="empty"><h2>No schedule yet</h2><p>Pull it from VEX Events once it’s posted, paste it in the Event tab, or log by team with + Entry.</p><div class="actions"><button class="primary" data-act="reUpdate">Load schedule from VEX Events</button><button data-act="tab" data-tab="event">Paste a schedule</button></div></div>`:emptyBox('No schedule yet','Load an event from VEX Events, paste your match list in the Event tab, or log by team with + Entry. A schedule is optional.','Add a schedule','event');
+ body:ev=>{if(!ev.matches.length)return ev.sku?`<div class="empty"><h2>No schedule yet</h2><p>Pull it from VEX Events once it’s posted, paste it in the Event tab, or log by team with + Log.</p><div class="actions"><button class="primary" data-act="reUpdate">Load schedule from VEX Events</button><button data-act="tab" data-tab="event">Paste a schedule</button></div></div>`:emptyBox('No schedule yet','Load an event from VEX Events, paste your match list in the Event tab, or log by team with + Log. A schedule is optional.','Add a schedule','event');
   const q=S.mq.trim().toUpperCase(),ST=stats(),fld=mfieldOf(ev),pool=ev.matches.filter(m=>!fld||m.field===fld);
   const nx=ev.re||ev.matches.some(m=>m.scored)?pool.find(m=>!m.scored):null,L=liveOn(ev)?live(ev):null;
   const ms=pool.filter(m=>(S.mround==='all'||roundOf(m.label)===S.mround)&&(!q||m.label.startsWith(q)||m.red.concat(m.blue).some(t=>t.includes(q))));
@@ -436,7 +492,7 @@ V.log={
   <div class="tools"><input id="fq" type="search" placeholder="Search teams, matches, notes" value="${esc(S.f.q)}" aria-label="Search the log" autocomplete="off"><select id="frule" aria-label="Rule"></select><select id="fref" aria-label="Referee"></select><select id="fsort" aria-label="Sort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="team">By team</option><option value="match">By match</option></select></div>
   <div id="body"></div><div class="actions"><button data-act="export" data-k="csv">Export CSV</button><button data-act="export" data-k="json">Export backup</button><button data-act="import">Import backup</button></div>`,
  mount:()=>{$('#fsort').value=S.f.sort},
- body:ev=>{if(!viol().length)return emptyBox('The log is empty','Entries show up here as you log them from a match, a team, or + Entry.');
+ body:ev=>{if(!viol().length)return emptyBox('The log is empty','Entries show up here as you log them from a match, a team, or + Log.');
   const f=S.f,q=f.q.trim().toLowerCase();let L=viol();
   if(f.out!=='all')L=L.filter(e=>e.outcome===f.out);if(f.rule)L=L.filter(e=>e.rules.includes(f.rule));if(f.ref)L=L.filter(e=>e.ref===f.ref);
   if(q)L=L.filter(e=>(e.team+' '+e.match+' '+e.notes+' '+e.rules.join(' ')+' '+e.ref).toLowerCase().includes(q));
@@ -456,13 +512,13 @@ V.rules={
 function whereText(ev){return ev.where==='room'?'Shared live: everyone who joins with the event code sees every entry as it’s logged. It keeps working offline and catches up when the connection returns.':ev.where==='device'?(LS.ok?'Kept in this browser on this device only. Export a backup before you clear the browser or switch devices.':'This browser isn’t keeping data. Export a backup before you close the page.'):ev.where==='mine'?'Saved to your account. Only you can see it, on any device where you open this page.':'Shared: anyone who can open this page sees it, and people with edit access can log entries. Every referee’s entries sync live.'}
 V.event={
  shell:ev=>{const P=PROG[ev.program],ex=P.blue?(P.red===2?'Q1  9:00 AM  1121A 4512X  3310C 7110Z':'Q1  9:00 AM  UCF1  BLRS'):'Q1  9:00 AM  1121A 4512X';
-  return `${shareCard(ev)}<section class="card"><h2>Event</h2><form id="evForm" class="grid2"><label>Name<input id="eName" value="${esc(ev.name)}" maxlength="80" required></label><label>Program<select id="eProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===ev.program?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="eDate" type="date" value="${esc(ev.date)}"></label><label>VEX Events SKU <span class="opt">optional</span><input id="eSku" value="${esc(ev.sku)}" maxlength="40" placeholder="Leave blank for scrimmages"></label><div class="actions"><button class="primary">Save event</button></div></form><p class="hint">${whereText(ev)}</p></section>
+  return `${shareCard(ev)}<section class="card"><h2>Event</h2><form id="evForm" class="grid2"><label>Name<input id="eName" value="${esc(ev.name)}" maxlength="80" required></label><label>Program<select id="eProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===ev.program?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="eDate" type="date" value="${esc(ev.date)}"></label><label><span class="lt2">VEX Events SKU <span class="opt">optional</span></span><input id="eSku" value="${esc(ev.sku)}" maxlength="40" placeholder="Leave blank for scrimmages"></label><div class="actions"><button class="primary">Save event</button></div></form><p class="hint">${whereText(ev)}</p></section>
   <section class="card"><h2>VEX Events</h2>${infoHtml(ev)}${ev.sku?`<p class="hint">Linked to ${esc(ev.sku)}. While the event is open here, the schedule, fields and scores refresh about every 90 seconds, and rankings and skills every 5 minutes. Update pulls everything now, including new teams. Entries you’ve logged are never changed.</p>${ev.re&&ev.re.divs.length>1?`<label>Division<select id="reDiv">${ev.re.divs.map(d=>`<option value="${d.id}"${d.id===ev.re.div?' selected':''}>${esc(d.name)}</option>`).join('')}</select></label>`:''}<div class="actions"><button class="primary" data-act="reUpdate">Update from VEX Events</button></div>`:`<p class="hint">Add the event’s VEX Events SKU above, then pull its teams and schedule from here.</p><div class="actions"><button data-act="events">Pick a VEX Events event</button></div>`}<p class="hint" id="reMsg" role="status"></p>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenLine()}</section>
   <section class="card"><h2>Your name on entries</h2><input id="eRef" value="${esc(prefs.ref||'')}" placeholder="e.g. Sam, Field 2" maxlength="40" aria-label="Your name on entries"><p class="hint">Kept on this device and added to each entry you log, so co-referees can tell who called what.</p></section>
   <section class="card"><h2>Teams <span class="count" id="eTeamCount"></span></h2><p class="hint">Paste team numbers: one per line with an optional team name, or all on one line separated by spaces or commas.</p><textarea id="eTeams" rows="4" placeholder="1121A Gear Grinders&#10;3310C&#10;4512X"></textarea><div class="actions"><button class="primary" data-act="addTeams">Add teams</button></div><div id="eTeamList" class="chips" style="margin-top:12px"></div></section>
   <section class="card"><h2>Match schedule <span class="count" id="eMatchCount"></span></h2><p class="hint">One match per line: the match name, an optional time, then ${P.blue?`${P.red===2?'two red and two blue teams':'the red team and the blue team'}`:'the two teamwork teams'}. Commas, tabs or spaces all work, so you can paste rows from a spreadsheet or the Tournament Manager schedule.</p><pre class="ex">${esc(ex)}</pre><textarea id="eSched" rows="5" placeholder="${esc(ex)}"></textarea><div class="actions"><button class="primary" data-act="schedAdd">Add matches</button><button data-act="schedRep">Replace schedule</button><button class="danger" data-act="schedClr">Clear schedule</button></div><p class="hint" id="eSchedMsg"></p></section>
   <section class="card"><h2>Back up or merge</h2><p class="hint">Export any time. Importing a backup from another device merges it into this event; anything already here is kept.</p><div class="actions"><button data-act="export" data-k="csv">Export CSV</button><button data-act="export" data-k="json">Export backup</button><button data-act="import">Import backup</button></div></section>
-  <section class="card"><h2>Delete</h2><p class="hint">This can’t be undone. Export a backup first.</p><div class="actions"><button class="danger" data-act="clearEntries">Delete all entries</button><button class="danger" data-act="delEvent">Delete this event</button></div></section>`},
+  ${installCard()}<section class="card"><h2>Delete</h2><p class="hint">This can’t be undone. Export a backup first.</p><div class="actions"><button class="danger" data-act="clearEntries">Delete all entries</button><button class="danger" data-act="delEvent">Delete this event</button></div></section>`},
  after:ev=>{const hn=$('#hereNow');if(hn){const h=hereNow();hn.textContent=h.length?'Here now: '+h.map(p=>p.name+(p.me?' (you)':'')).join(', '):'Nobody else is here right now.'}const c=$('#eTeamCount');if(!c)return;const ts=allTeams(ev);c.textContent=ts.length;$('#eMatchCount').textContent=ev.matches.length;
   $('#eTeamList').innerHTML=ts.map(t=>`<span class="chip static"><b>${esc(t)}</b>${ev.teams.some(x=>x.num===t)&&!ev.matches.some(m=>m.red.includes(t)||m.blue.includes(t))&&!viol().some(e=>e.team===t)?`<button class="x" data-act="rmTeam" data-t="${esc(t)}" aria-label="Remove ${esc(t)}">×</button>`:''}</span>`).join('')}};
 
@@ -486,8 +542,9 @@ const jump=id=>{const el=document.getElementById(id);if(el)el.scrollIntoView({bl
 
 /* ---------- sheets & toasts ---------- */
 let lastFocus=null,tt=0;
-function sheet(html,mount){lastFocus=document.activeElement;const c=$('#sheetCard');c.innerHTML=html;$('#sheet').hidden=false;document.body.style.overflow='hidden';c.scrollTop=0;if(mount)mount(c);
+function sheet(html,mount,opt){opt=opt||{};lastFocus=document.activeElement;const c=$('#sheetCard');c.className='card2'+(opt.full?' full':'');c.innerHTML=(opt.noX?'':'<button type="button" class="sx" data-act="close" aria-label="Close">×</button>')+html;$('#sheet').hidden=false;document.body.style.overflow='hidden';c.scrollTop=0;if(mount)mount(c);
  const h=c.querySelector('h2');if(h){h.tabIndex=-1;h.focus({preventScroll:true})}}
+if(window.visualViewport){const vv=window.visualViewport,fit=()=>{const r=document.documentElement.style;r.setProperty('--vvh',vv.height+'px');r.setProperty('--vvt',vv.offsetTop+'px')};vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);fit()}
 function closeSheet(){$('#sheet').hidden=true;$('#sheetCard').innerHTML='';document.body.style.overflow='';if(lastFocus&&lastFocus.isConnected)lastFocus.focus({preventScroll:true})}
 function toast(msg,act){const el=$('#toast');el.innerHTML=`<span>${esc(msg)}</span>${act?`<button type="button" id="toastAct">${esc(act.label)}</button>`:''}`;el.hidden=false;if(act)$('#toastAct').onclick=()=>{el.hidden=true;act.fn()};clearTimeout(tt);tt=setTimeout(()=>{el.hidden=true},act?6500:2800)}
 function ask(title,msg,label){return new Promise(res=>sheet(`<h2 id="sheetTitle">${esc(title)}</h2><p>${esc(msg)}</p><div class="actions"><span class="sp"></span><button type="button" id="aNo">Cancel</button><button type="button" class="danger solid" id="aYes">${esc(label)}</button></div>`,c=>{c.querySelector('#aNo').onclick=()=>{closeSheet();res(false)};c.querySelector('#aYes').onclick=()=>{closeSheet();res(true)}}))}
@@ -496,16 +553,17 @@ function ask(title,msg,label){return new Promise(res=>sheet(`<h2 id="sheetTitle"
 function openEntry(o){const ev=curEv();if(!ev){openEvents();return}if(!writable(ev)){toast('This event is view-only for you');return}
  const P=PROG[ev.program],RM=ruleMap(ev),old=o.id?S.entries.find(x=>x.id===o.id):null;if(o.id&&!old)return;
  const e=old?{...old,rules:old.rules.slice()}:{id:uid(),kind:'entry',team:o.team||'',match:o.match||'',outcome:o.outcome||'minor',affecting:false,rules:[],notes:'',ref:prefs.ref||'',at:Date.now()};const sel=e.rules;
- sheet(`<form id="entForm" novalidate><h2 id="sheetTitle">${old?'Edit entry':'New entry'}</h2>
- <div class="grid2"><label>Team<input id="fTeam" list="dlT" autocomplete="off" autocapitalize="characters" value="${esc(e.team)}" placeholder="1121A" maxlength="10"></label><label>Match <span class="opt">optional</span><input id="fMatch" list="dlM" autocomplete="off" autocapitalize="characters" value="${esc(e.match)}" placeholder="Q12" maxlength="20"></label></div>
+ sheet(`<form id="entForm" novalidate><div class="fhead"><h2 id="sheetTitle">${old?'Edit entry':'New entry'}</h2><button type="button" class="sx" data-act="close" aria-label="Close">×</button></div><div class="fbody">
+ <div class="pair"><label>Team<input id="fTeam" list="dlT" autocomplete="off" autocapitalize="characters" value="${esc(e.team)}" placeholder="1121A" maxlength="10"></label><label><span class="lt2">Match <span class="opt">optional</span></span><input id="fMatch" list="dlM" autocomplete="off" autocapitalize="characters" value="${esc(e.match)}" placeholder="Q12" maxlength="20"></label></div>
  <datalist id="dlT">${allTeams(ev).map(t=>`<option value="${esc(t)}"></option>`).join('')}</datalist><datalist id="dlM"></datalist><div id="fCtx" class="ctx"></div>
  <fieldset class="outs"><legend>Outcome</legend>${OUTS.map(x=>`<label><input type="radio" name="fOut" value="${x}"${x===e.outcome?' checked':''}><span class="o-${x}">${OL[x]}</span></label>`).join('')}</fieldset>
  <label class="chk" id="fAffW"><input type="checkbox" id="fAff"${e.affecting?' checked':''}> Match affecting: it changed who won</label>
  <div class="lbl">Rules <span class="opt" id="fNeed"></span></div><div id="fSel" class="chips"></div><div id="fPicks" class="chips"></div>
  <input id="fRuleQ" type="search" placeholder="Search rules: SG6, holding, expansion" aria-label="Search rules" autocomplete="off"><div id="fRes" class="rres"></div>
  <label>Notes<textarea id="fNotes" rows="3" maxlength="600" placeholder="What happened and where on the field">${esc(e.notes)}</textarea></label>
- <label>Referee<input id="fRef" value="${esc(e.ref)}" maxlength="40" placeholder="Your name"></label><p class="err" id="fErr" role="alert"></p>
- <div class="actions">${old?'<button type="button" class="danger" id="fDel">Delete</button>':''}<span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary" type="submit">${old?'Save changes':'Save entry'}</button></div></form>`,c=>{
+ ${e.ref?`<div class="byline" id="fRefLine">Logged by <b>${esc(e.ref)}</b><button type="button" class="linkb" id="fRefBtn">Change</button></div>`:''}<label id="fRefW"${e.ref?' hidden':''}>Your name<input id="fRef" value="${esc(e.ref)}" maxlength="40" placeholder="So co-referees know who logged it" autocomplete="name"></label><p class="err" id="fErr" role="alert"></p>
+ </div><div class="ffoot">${old?'<button type="button" class="danger" id="fDel">Delete</button>':''}<span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary" type="submit">${old?'Save changes':'Save entry'}</button></div></form>`,c=>{
+  const rb=c.querySelector('#fRefBtn');if(rb)rb.onclick=()=>{c.querySelector('#fRefLine').hidden=true;c.querySelector('#fRefW').hidden=false;c.querySelector('#fRef').focus()};
   const q=s=>c.querySelector(s),out=()=>(q('input[name=fOut]:checked')||{}).value||'note';
   const picks=()=>{const cnt={};viol().forEach(x=>x.rules.forEach(r=>cnt[r]=(cnt[r]||0)+1));const top=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).slice(0,6);for(const r of P.picks)if(top.length<8&&!top.includes(r))top.push(r);return top};
   const lab=r=>(RM.get(r)||{}).label||'';
@@ -528,9 +586,9 @@ function openEntry(o){const ev=curEv();if(!ev){openEvents();return}if(!writable(
   if(old)q('#fDel').onclick=()=>{const keep={...old};removeEntry(old.id);closeSheet();toast(`Deleted ${OL[keep.outcome]} for ${keep.team}`,{label:'Undo',fn:()=>persistEntry(keep)})};
   q('#entForm').onsubmit=s=>{s.preventDefault();const t=q('#fTeam').value.trim().toUpperCase().replace(/\s+/g,''),o=out(),err=m=>{q('#fErr').textContent=m};
    if(!t)return err('Enter a team number.');if((o==='minor'||o==='major')&&!sel.length)return err('Add the rule you cited. Minor and Major violations need a rule number.');
-   const ref=q('#fRef').value.trim(),was=prefs.ref;prefs.ref=ref;savePrefs();if(ref!==was)beatNow();
+   const ref=q('#fRef').value.trim(),was=prefs.ref;prefs.ref=ref;savePrefs();if(ref!==was)beatNow();try{navigator.vibrate&&navigator.vibrate(12)}catch(x){}
    persistEntry({...e,team:t,match:q('#fMatch').value.trim().toUpperCase(),outcome:o,affecting:o==='major'&&q('#fAff').checked,rules:sel.slice(),notes:q('#fNotes').value.trim(),ref,at:old?old.at:Date.now()});closeSheet();toast(`${old?'Updated':'Logged'} ${OL[o]} for ${t}`)};
-  draw();if(!e.team)setTimeout(()=>q('#fTeam').focus(),30)})}
+  draw();if(!e.team)setTimeout(()=>q('#fTeam').focus(),30)},{full:true,noX:true})}
 function setAuton(mid,patch){const ev=curEv();if(!writable(ev)){toast('This event is view-only for you');return}const m=ev.matches.find(x=>x.id===mid);if(!m)return;
  const a=autonFor(m)||{id:'auton-'+m.id,kind:'auton',matchId:m.id,match:m.label,bonus:'',awpRed:false,awpBlue:false,at:Date.now()};persistEntry({...a,...patch,match:m.label})}
 
@@ -540,9 +598,9 @@ function openEvents(){const evs=[...S.events.values()].sort((a,b)=>(b.date||'').
  sheet(`<h2 id="sheetTitle">Events</h2>${evs.length?'<h3>Your events</h3>':''}<div class="evlist">${evs.map(e=>`<button class="evitem${e.id===S.cur?' cur':''}" data-act="pickEv" data-id="${esc(e.id)}"><b>${esc(e.name)}</b><span>${PROG[e.program].label} · ${fmtD(e.date)} · ${WL[e.where]}</span></button>`).join('')}</div>
  ${roomsOn()?'<h3>Join a shared event</h3><form id="joinF" class="row"><label class="grow">Event code<input id="jCode" placeholder="ABCD-EF23" autocomplete="off" autocapitalize="characters" maxlength="12"></label><button class="primary">Join</button></form><p class="err" id="jErr" role="alert"></p>':''}
  <h3>VEX Events</h3><div id="reBrowse"></div>
- <details class="adv"><summary>Set up an event by hand</summary><p class="hint">For scrimmages, practice nights, league sessions and anything not on VEX Events.</p><form id="newEv" class="grid2"><label>Name<input id="nName" required maxlength="80" placeholder="Saturday scrimmage"></label><label>Program<select id="nProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===cp?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="nDate" type="date" value="${today()}"></label><label>VEX Events SKU <span class="opt">optional</span><input id="nSku" maxlength="40"></label>
+ <details class="adv"><summary>Set up an event by hand</summary><p class="hint">For scrimmages, practice nights, league sessions and anything not on VEX Events.</p><form id="newEv" class="grid2"><label>Name<input id="nName" required maxlength="80" placeholder="Saturday scrimmage"></label><label>Program<select id="nProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===cp?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="nDate" type="date" value="${today()}"></label><label><span class="lt2">VEX Events SKU <span class="opt">optional</span></span><input id="nSku" maxlength="40"></label>
  ${whereRadios()}
- <p class="err" id="nErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary">Create event</button></div></form></details>`,c=>{mountBrowse(c.querySelector('#reBrowse'));const jf=c.querySelector('#joinF');if(jf)jf.onsubmit=async s=>{s.preventDefault();const m=await joinRoom(c.querySelector('#jCode').value);if(m)c.querySelector('#jErr').textContent=m};
+ <p class="err" id="nErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary">Create event</button></div></form></details>`,c=>{c.style.padding='';mountBrowse(c.querySelector('#reBrowse'));const jf=c.querySelector('#joinF');if(jf)jf.onsubmit=async s=>{s.preventDefault();const m=await joinRoom(c.querySelector('#jCode').value);if(m)c.querySelector('#jErr').textContent=m};
   c.querySelector('#newEv').onsubmit=s=>{s.preventDefault();const name=c.querySelector('#nName').value.trim();if(!name){c.querySelector('#nErr').textContent='Give the event a name.';return}
    const where=(c.querySelector('input[name=nWhere]:checked')||{}).value||'device';const ev=cleanEvent({name,program:c.querySelector('#nProg').value,date:c.querySelector('#nDate').value,sku:c.querySelector('#nSku').value,created:Date.now()},uid(),where);
    persistEvent(ev);S.tab='event';prefs.tab='event';setCur(ev.id);closeSheet();toast('Event created. Add teams and a schedule, or start logging.')}})}
@@ -785,6 +843,15 @@ function shareCard(ev){if(inClaude||!(ev.where==='device'||ev.where==='room'))re
  if(ev.where==='room')return `<section class="card"><h2>Live sharing</h2><p class="hint">Send the code or invite link to your other referees. Everyone who joins sees every entry as it’s logged.</p><div class="codebox"><span>Event code</span><b>${esc(fmtCode(ev.id))}</b></div><div class="actions"><button class="primary" data-act="copyLink">Copy invite link</button><button data-act="copyCode">Copy code</button></div><p class="hint" id="hereNow" role="status"></p><div class="actions"><button class="danger" data-act="leaveRoom">Leave on this device</button></div></section>`;
  return `<section class="card"><h2>Live sharing</h2><p class="hint">Share this event so other referees can join with a code and log into it from their own phones. Everyone sees each other’s entries live.</p><div class="actions"><button class="primary" data-act="shareEv"${S.fb?'':' disabled'}>Share this event</button></div>${S.fbErr?`<p class="err">Live sharing couldn’t start (${esc(S.fbErr)}). Check the Firebase setup in the README.</p>`:S.fb?'':'<p class="hint">Connecting to the sharing service…</p>'}</section>`}
 
+/* ---------- install on home screen ---------- */
+let installEvt=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;if(S.tab==='event'){shellKey='';renderAll()}});
+addEventListener('appinstalled',()=>{installEvt=null;if(S.tab==='event'){shellKey='';renderAll()}});
+const standalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+function installCard(){if(inClaude||standalone())return'';const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ return `<section class="card"><h2>Put it on your home screen</h2><p class="hint">It opens full screen like an app, works with no signal, and updates itself whenever you’re online.</p>${installEvt?'<div class="actions"><button class="primary" data-act="install">Install app</button></div>':`<p class="hint">${ios?'In Safari, tap the Share button, then <b>Add to Home Screen</b>.':'Open your browser’s menu and choose <b>Install app</b> or <b>Add to Home Screen</b>.'}</p>`}</section>`}
+if('serviceWorker' in navigator&&!inClaude&&(location.protocol==='https:'||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)))addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
+
 /* ---------- events wiring ---------- */
 const A={
  tab:b=>{S.tab=b.dataset.tab;prefs.tab=S.tab;savePrefs();renderAll();window.scrollTo(0,0)},
@@ -805,6 +872,7 @@ const A={
  addTeams:()=>{const ev=curEv();if(!writable(ev))return toast('This event is view-only for you');const ta=$('#eTeams'),L=parseTeams(ta.value,ev.program);if(!L.length)return toast('No team numbers found');let n=0;
   for(const t of L){const x=ev.teams.find(y=>y.num===t.num);if(x){if(t.name)x.name=t.name}else{ev.teams.push(t);n++}}ta.value='';persistEvent(ev);toast(`Added ${n} team${n===1?'':'s'}`)},
  schedAdd:()=>sched(false),schedRep:()=>sched(true),
+ install:async()=>{if(!installEvt)return;const e=installEvt;installEvt=null;e.prompt();try{await e.userChoice}catch(x){}shellKey='';renderAll()},
  reOpen:()=>openRE(),reUpdate:()=>reUpdate(),liveNow:()=>{const ev=curEv();if(ev&&liveOn(ev)){live(ev).done=0;renderBody();liveTick(true)}},
  shareEv:()=>shareEvent(),copyLink:()=>{const ev=curEv();if(ev&&ev.where==='room')copyText(inviteLink(ev.id),'Invite link')},copyCode:()=>{const ev=curEv();if(ev&&ev.where==='room')copyText(fmtCode(ev.id),'Event code')},
  leaveRoom:async()=>{const ev=curEv();if(!ev||ev.where!=='room')return;if(await ask('Leave this shared event?','It’s removed from this device only. Everyone else keeps it, and you can rejoin with the code.','Leave')){if(S.fb&&S.fbUid)S.fb.doc('rooms/'+ev.id+'/people/'+S.fbUid).delete().catch(()=>{});forgetRoom(ev.id);S.cur=null;S.waitCloud=false;rebuildEvents();shellKey='';renderAll();toast('Left the event')}},reForget:()=>{LS.del('rl.reToken');if(!$('#sheet').hidden)closeSheet();shellKey='';renderAll();toast('Token removed from this browser')},

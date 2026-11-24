@@ -2,7 +2,7 @@
 
 A digital match anomaly log for VEX head referees, inspired by Referee FYI. It lists official events from VEX Events (events.vex.com) automatically, and also works for scrimmages, practice nights and league sessions that aren't listed there.
 
-It is a single `index.html` plus a small `config.js`, with no build step. Live site: <https://ryannanthal-creator.github.io/vex-ref-log/>
+It is a single `index.html` plus a small `config.js`, a web app manifest, icons and a service worker, with no build step. Live site: <https://ryannanthal-creator.github.io/vex-ref-log/>
 
 ## Features
 
@@ -16,6 +16,12 @@ It is a single `index.html` plus a small `config.js`, with no build step. Live s
 - **Log** — filter by outcome, rule, referee or text; sort by time, team or match; export CSV or a JSON backup; import a backup to merge.
 - **Rules** — 2026–27 rule codes with short labels for V5RC and VEX U (Override) and VIQRC (Level Up), links to the official Q&A, and custom rule codes per event for mid-season manual updates.
 - **Setup** — paste a team list and a match schedule (from a spreadsheet or Tournament Manager); commas, tabs or spaces all work.
+
+## On your phone
+
+On phones the tabs sit in a bar along the bottom, the **Log** button floats above it within thumb reach, and the entry form fills the screen with **Save** always visible, even with the keyboard open.
+
+Add it to your home screen to use it like an app: in Safari, tap **Share → Add to Home Screen**; in Chrome on Android, tap **Install app** in the Event tab or the browser menu. Installed, it opens full screen and works with no signal (a service worker in `sw.js` keeps a copy of the app). Whenever you're online it loads the newest version automatically.
 
 ## Loading events from VEX Events
 
