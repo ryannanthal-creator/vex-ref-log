@@ -2,7 +2,7 @@
 
 A digital match anomaly log for VEX head referees, inspired by Referee FYI. It lists official events from VEX Events (events.vex.com) automatically, and also works for scrimmages, practice nights and league sessions that aren't listed there.
 
-It is a single `index.html` plus a small `config.js`, a web app manifest, icons and a service worker, with no build step. Live site: <https://ryannanthal-creator.github.io/vex-ref-log/>
+It is a single `index.html` plus a small `config.js`, a web app manifest, icons and a service worker, with no build step. `relay/worker.js` is an optional Cloudflare Worker for showing official rule wording in the app. Live site: <https://ryannanthal-creator.github.io/vex-ref-log/>
 
 ## Features
 
@@ -15,7 +15,7 @@ It is a single `index.html` plus a small `config.js`, a web app manifest, icons 
 - **Scores for scrimmages** — for events set up by hand, open a match and tap **Enter score**; results show the same way and go into the CSV export.
 - **Live sharing** — share an event with a code or invite link; every referee who joins sees each other's entries live, and the app shows who's on the event right now.
 - **Log** — filter by outcome, rule, referee or text; sort by time, team or match; export CSV or a JSON backup; import a backup to merge.
-- **Rules** — every rule number in the current Override (V5RC and VEX U) and Level Up (VIQRC) game manuals, checked against the official rules index. Tap a rule, on the Rules tab or with **Read** while logging, to see its **official wording**, loaded from the game manual on events.vex.com; links to other rules open in place, and **Add to entry** cites it. **Save official rules for offline use** keeps a copy in that browser for gyms without signal. The short descriptions in the list are the app's own and only help you find a rule; the manual's wording isn't stored in this repo. Custom rule codes can be added per event for mid-season manual updates.
+- **Rules** — every rule number in the current Override (V5RC and VEX U) and Level Up (VIQRC) game manuals, checked against the official rules index. Tap a rule, on the Rules tab or with **Read** while logging, to see its **official wording** from the game manual on events.vex.com (shown in the app when the rules relay below is set up, otherwise opened on VEX's site); links to other rules open in place, and **Add to entry** cites it. **Save official rules for offline use** keeps a copy in that browser for gyms without signal. The short descriptions in the list are the app's own and only help you find a rule; the manual's wording isn't stored in this repo. Custom rule codes can be added per event for mid-season manual updates.
 - **Setup** — paste a team list and a match schedule (from a spreadsheet or Tournament Manager); commas, tabs or spaces all work.
 
 ## On your phone
@@ -54,6 +54,17 @@ Live sharing on the GitHub Pages site uses a free Firebase project (Google's hos
 The Firebase web config is designed to be public. Access is controlled by `firestore.rules`: anyone signed in anonymously who knows an event's 8-character code can read and write that event, and nobody can list events, so codes can't be discovered. The free Spark plan (50,000 reads and 20,000 writes a day) is far more than a tournament needs.
 
 **Using it:** open an event, go to the **Event** tab and choose **Share this event**. Send the code or **Copy invite link** to your other referees. They open the link, or choose **Join a shared event** in the event menu and type the code. Everyone's entries appear for everyone within a second or two, work offline, and catch up when the connection returns. **Leave on this device** removes it from one phone; **Delete this event** removes it for everyone.
+
+## Rules relay (optional, about 5 minutes)
+
+events.vex.com doesn't let other websites read its game manual pages, so without help the app opens each rule on VEX's site. The free relay in [`relay/worker.js`](relay/worker.js) fetches one official rule page at a time for this site, so rules show inside the app and **Save official rules for offline use** works. It only relays rule pages from the official manual, only for this site, and stores nothing beyond Cloudflare's short-lived cache.
+
+1. Create a free account at <https://dash.cloudflare.com/sign-up> (no card needed).
+2. Open **Workers & Pages → Create → Create Worker** (start from "Hello World"), name it, for example `vex-rules`, and **Deploy**.
+3. Click **Edit code**, replace everything with the contents of `relay/worker.js`, and **Deploy** again.
+4. Copy the Worker's address, like `https://vex-rules.your-name.workers.dev`, and put it in `config.js` as `rulesRelay: "https://…"`, then commit. The site updates within a couple of minutes.
+
+The free plan allows 100,000 requests a day; a tournament uses a few hundred.
 
 ## Storage
 
