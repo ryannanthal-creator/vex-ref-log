@@ -53,6 +53,17 @@ button,a,label,summary{touch-action:manipulation;-webkit-tap-highlight-color:tra
 .fab{display:none}
 main{max-width:960px;margin:0 auto;padding:16px max(16px,4vw) 96px}
 .sample{margin:0 0 12px;font-size:14px;color:var(--mut)}
+.start>h2{font-size:clamp(32px,7vw,44px);line-height:1.05;margin:8px 0 6px}
+.start>.hint{font-size:16px;max-width:52ch;margin:0 0 8px}
+.start .evbtn svg{display:none}
+.noev .tabs,.noev .fab,.noev .add{display:none!important}
+.actions .linkb{border:0!important;background:none!important;padding:0 4px!important;min-height:44px;font-weight:600}
+details.adv summary{list-style:none;justify-content:space-between;border-top:1px solid var(--line)}
+details.adv summary::-webkit-details-marker{display:none}
+details.adv summary::after{content:'+';font-size:24px;font-weight:400;color:var(--mut)}
+details.adv[open] summary::after{content:'–'}
+.noev main{padding-bottom:48px}
+.noev .evbtn svg{display:none}
 .tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
 .tools input[type=search]{flex:1 1 200px}
 input,select,textarea{font-size:16px;padding:10px 12px;border:1px solid var(--line2);border-radius:9px;background:var(--bg);min-height:44px;width:100%}
@@ -343,6 +354,7 @@ const prefs=LS.get('rl.prefs',{})||{};
 const savePrefs=()=>LS.set('rl.prefs',prefs);
 let devEvents=LS.get('rl.events',null);
 const devEntries={};
+for(const[id,d]of Object.entries(devEvents||{})){if(d&&d.sample){const E=arr(LS.get('rl.ent.'+id,[]));if(E.every(e=>e&&/^(se\d+|auton-sm\d+)$/.test(e.id))){delete devEvents[id];LS.del('rl.ent.'+id);if(prefs.cur===id){prefs.cur=null;prefs.curWhere=null}LS.set('rl.events',devEvents);savePrefs()}}}
 const S={events:new Map(),entries:[],cur:prefs.cur||null,tab:prefs.tab||'matches',open:{match:null,team:null},mq:'',mround:'all',tq:'',tsort:'num',rq:'',f:{out:'all',rule:'',ref:'',q:'',sort:'new'},db:null,uid:null,dl:null,canWrite:true,pending:0,entPending:false,entStale:false,entErr:'',offline:typeof navigator!=='undefined'&&navigator.onLine===false,waitCloud:!!(prefs.cur&&prefs.curWhere&&prefs.curWhere!=='device'),boundKey:null,unsub:null,answered:{shared:false,mine:false},fb:null,fbUid:'',fbErr:'',people:[],unsubPeople:null};
 const cloudEv={shared:new Map(),mine:new Map(),room:new Map()};
 
@@ -367,17 +379,7 @@ function devLoad(id){if(!devEntries[id])devEntries[id]=arr(LS.get('rl.ent.'+id,[
 const devSave=id=>LS.set('rl.ent.'+id,(devEntries[id]||[]).map(e=>({...e})));
 const devSaveEvents=()=>LS.set('rl.events',devEvents);
 
-function seedSample(){
- const at=(h,mi)=>{const x=new Date();x.setHours(h,mi,30,0);return x.getTime()};
- const sch=[['Q1','9:00 AM','1121A 4512X','3310C 7110Z'],['Q2','9:06 AM','5225A 9123B','6390D 11447S'],['Q3','9:12 AM','8059K 1121B','10201A 12039E'],['Q4','9:18 AM','3310C 6390D','1121A 8059K'],['Q5','9:24 AM','7110Z 10201A','5225A 1121B'],['Q6','9:30 AM','11447S 12039E','4512X 9123B'],['Q7','9:36 AM','1121A 9123B','7110Z 6390D'],['Q8','9:42 AM','4512X 10201A','8059K 11447S']];
- const names={'1121A':'Gear Grinders','3310C':'Torque Theory','4512X':'Night Owls','5225A':'Hex Nuts','7110Z':'Zip Tie Brigade','8059K':'Kinetic','10201A':'Rookie Rush','12039E':'Eastside Bots'};
- const teams='1121A 1121B 3310C 4512X 5225A 6390D 7110Z 8059K 9123B 10201A 11447S 12039E'.split(' ').map(n=>({num:n,name:names[n]||''}));
- devEvents={sample1:{kind:'event',name:'Sample scrimmage',program:'V5RC',sku:'',date:today(),sample:true,teams,matches:sch.map(([l,t,r,b],i)=>({id:'sm'+(i+1),label:l,time:t,red:r.split(' '),blue:b.split(' ')})),customRules:[],created:Date.now(),updated:Date.now()}};
- const E=(id,team,match,outcome,rules,notes,h,mi,ref,aff)=>({id,kind:'entry',team,match,outcome,rules,notes,ref,at:at(h,mi),affecting:!!aff});
- devEntries.sample1=[E('se1','4512X','Q1','minor',['SG6'],'Held two Pins while crossing the Midfield, about 2 seconds',9,2,'Sam'),E('se2','7110Z','Q1','note',[],'Helped 3310C reset a Pin after the Match. Good sportsmanship.',9,4,'Sam'),E('se3','9123B','Q2','minor',['SG2'],'Briefly over the horizontal limit while scoring',9,8,'Priya'),E('se4','3310C','Q4','major',['SG10'],'Pulled a Placed Pin off the neutral Goal; changed the result',9,20,'Sam',true),E('se5','8059K','Q4','minor',['GG17'],'Pinned 1121A on the wall, released at 4',9,21,'Sam'),E('se6','4512X','Q6','minor',['SG6'],'Two Cups while driving to the Load Zone',9,32,'Priya'),E('se7','12039E','Q6','disabled',['S1'],'Battery came loose and sparked. Disabled for safety.',9,33,'Sam'),E('se8','9123B','Q7','minor',['SG2'],'Arm past the limit for a moment',9,38,'Priya'),E('se9','4512X','Q8','minor',['SG6'],'Third possession warning today',9,44,'Sam'),
-  {id:'auton-sm1',kind:'auton',matchId:'sm1',match:'Q1',bonus:'red',awpRed:true,awpBlue:false,at:at(9,2)},{id:'auton-sm4',kind:'auton',matchId:'sm4',match:'Q4',bonus:'blue',awpRed:false,awpBlue:false,at:at(9,20)}];
- devSaveEvents();devSave('sample1');prefs.seeded=true;S.cur='sample1';prefs.cur='sample1';prefs.curWhere='device';S.open.match='sm6';savePrefs()}
-if(!devEvents||typeof devEvents!=='object'){devEvents={};if(!prefs.seeded)seedSample()}
+if(!devEvents||typeof devEvents!=='object')devEvents={};
 
 function rebuildEvents(){const m=new Map();for(const[id,d]of Object.entries(devEvents))m.set(id,cleanEvent(d,id,'device'));for(const w of['mine','shared','room'])for(const[id,e]of cloudEv[w])m.set(id,e);S.events=m;
  if(!m.has(S.cur)&&!S.waitCloud){const f=[...m.values()][0];S.cur=f?f.id:null;prefs.cur=S.cur;prefs.curWhere=f?f.where:null;savePrefs()}
@@ -529,12 +531,13 @@ function renderSync(){const el=$('#sync'),ev=curEv();if(!el)return;let c='',t=''
  else if(ev.where==='room'){if(!S.fb){t=S.fbErr?'Sharing unavailable':'Connecting…';c=S.fbErr?'bad':'busy'}else if(S.pending>0||S.entPending){t=S.offline?'Offline, will sync':'Saving…';c='busy'}else if(S.entErr){t='Can’t reach shared data';c='bad'}else{const n=hereNow().length;t='Shared live'+(n>1?` · ${n} here`:'')}}
  else if(!S.db){t='Connecting…';c='busy'}else if(!S.canWrite){t='View only';c='bad'}else if(S.pending>0||S.entPending){t=S.offline?'Offline, will sync':'Saving…';c='busy'}else if(S.entErr){t='Can’t reach saved data';c='bad'}else if(S.entStale){t='May be out of date';c='busy'}else t=WL[ev.where]+' · synced';
  el.className='sync '+c;el.innerHTML=t?`<i></i>${esc(t)}`:''}
-function renderHeader(){const ev=curEv();$('#evName').textContent=ev?ev.name:(S.waitCloud?'Loading…':'VEX Ref Log');$('#evMeta').textContent=ev?`${PROG[ev.program].label} · ${PROG[ev.program].game} · ${fmtD(ev.date)}`:'Match anomaly log';
+function renderHeader(){const ev=curEv();$('#evName').textContent=ev?ev.name:(S.waitCloud?'Loading…':'VEX Ref Log');$('#evMeta').textContent=ev?`${PROG[ev.program].label} · ${PROG[ev.program].game} · ${fmtD(ev.date)}`:(S.waitCloud?'Match anomaly log':'Pick an event to start');
  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===S.tab)));renderSync()}
 function renderBody(){const ev=curEv(),v=V[S.tab],b=$('#body');if(!ev)return;if(b&&v.body)b.innerHTML=v.body(ev);if(v.after)v.after(ev)}
 function renderAll(){renderHeader();const ev=curEv(),key=S.tab+'|'+(ev?ev.where+ev.id+ev.program:'none');
  if(key!==shellKey){shellKey=key;const m=$('#main');
-  if(!ev)m.innerHTML=S.waitCloud?'<p class="none">Loading your event…</p>':'<div class="empty"><h2>No events yet</h2><p>Create an event for a tournament, scrimmage or practice night. No VEX Events listing needed.</p><button class="primary" data-act="events">Create an event</button></div>';
+  document.body.classList.toggle('noev',!ev);
+  if(!ev){if(S.waitCloud)m.innerHTML='<p class="none">Loading your event…</p>';else{m.innerHTML=`<section class="start"><h2>Find your event</h2><p class="hint">Pick this season’s event from VEX Events, join an event another referee shared with you, or set one up for a scrimmage or practice.</p>${pickerHtml(true)}</section>`;mountPicker(m)}}
   else{m.innerHTML=V[S.tab].shell(ev);if(V[S.tab].mount)V[S.tab].mount(ev)}}
  renderBody()}
 function setCur(id){const e=S.events.get(id);if(!e)return;S.cur=id;S.waitCloud=false;prefs.cur=id;prefs.curWhere=e.where;savePrefs();S.open={match:null,team:null};ensureBound();shellKey='';renderAll()}
@@ -594,16 +597,18 @@ function setAuton(mid,patch){const ev=curEv();if(!writable(ev)){toast('This even
 
 /* ---------- events ---------- */
 function whereRadios(){const cloud=!!S.db&&S.canWrite;return `<fieldset class="where"><legend>Keep it</legend>${cloud?`<label class="rad"><input type="radio" name="nWhere" value="shared" checked><span><b>Shared</b>Anyone you share this page with sees it live. People with edit access can log entries.</span></label>${S.uid?'<label class="rad"><input type="radio" name="nWhere" value="mine"><span><b>Only you</b>Saved to your account, on any device.</span></label>':''}`:''}<label class="rad"><input type="radio" name="nWhere" value="device"${cloud?'':' checked'}><span><b>This device</b>Stays in this browser. Works without signing in.</span></label></fieldset>`}
-function openEvents(){const evs=[...S.events.values()].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||b.created-a.created),cp=(curEv()||{}).program||'V5RC';
- sheet(`<h2 id="sheetTitle">Events</h2>${evs.length?'<h3>Your events</h3>':''}<div class="evlist">${evs.map(e=>`<button class="evitem${e.id===S.cur?' cur':''}" data-act="pickEv" data-id="${esc(e.id)}"><b>${esc(e.name)}</b><span>${PROG[e.program].label} · ${fmtD(e.date)} · ${WL[e.where]}</span></button>`).join('')}</div>
+function pickerHtml(start){const evs=[...S.events.values()].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||b.created-a.created),cp=(curEv()||{}).program||prefs.reProg||'V5RC';
+ return `${evs.length?'<h3>Your events</h3>':''}<div class="evlist">${evs.map(e=>`<button class="evitem${e.id===S.cur?' cur':''}" data-act="pickEv" data-id="${esc(e.id)}"><b>${esc(e.name)}</b><span>${PROG[e.program].label} · ${fmtD(e.date)} · ${WL[e.where]}</span></button>`).join('')}</div>
  ${roomsOn()?'<h3>Join a shared event</h3><form id="joinF" class="row"><label class="grow">Event code<input id="jCode" placeholder="ABCD-EF23" autocomplete="off" autocapitalize="characters" maxlength="12"></label><button class="primary">Join</button></form><p class="err" id="jErr" role="alert"></p>':''}
  <h3>VEX Events</h3><div id="reBrowse"></div>
  <details class="adv"><summary>Set up an event by hand</summary><p class="hint">For scrimmages, practice nights, league sessions and anything not on VEX Events.</p><form id="newEv" class="grid2"><label>Name<input id="nName" required maxlength="80" placeholder="Saturday scrimmage"></label><label>Program<select id="nProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===cp?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="nDate" type="date" value="${today()}"></label><label><span class="lt2">VEX Events SKU <span class="opt">optional</span></span><input id="nSku" maxlength="40"></label>
  ${whereRadios()}
- <p class="err" id="nErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary">Create event</button></div></form></details>`,c=>{c.style.padding='';mountBrowse(c.querySelector('#reBrowse'));const jf=c.querySelector('#joinF');if(jf)jf.onsubmit=async s=>{s.preventDefault();const m=await joinRoom(c.querySelector('#jCode').value);if(m)c.querySelector('#jErr').textContent=m};
+ <p class="err" id="nErr" role="alert"></p><div class="actions"><span class="sp"></span>${start?'':'<button type="button" data-act="close">Cancel</button>'}<button class="primary">Create event</button></div></form></details>`}
+function openEvents(){sheet(`<h2 id="sheetTitle">Events</h2>${pickerHtml(false)}`,mountPicker)}
+function mountPicker(c){mountBrowse(c.querySelector('#reBrowse'));const jf=c.querySelector('#joinF');if(jf)jf.onsubmit=async s=>{s.preventDefault();const m=await joinRoom(c.querySelector('#jCode').value);if(m)c.querySelector('#jErr').textContent=m};
   c.querySelector('#newEv').onsubmit=s=>{s.preventDefault();const name=c.querySelector('#nName').value.trim();if(!name){c.querySelector('#nErr').textContent='Give the event a name.';return}
    const where=(c.querySelector('input[name=nWhere]:checked')||{}).value||'device';const ev=cleanEvent({name,program:c.querySelector('#nProg').value,date:c.querySelector('#nDate').value,sku:c.querySelector('#nSku').value,created:Date.now()},uid(),where);
-   persistEvent(ev);S.tab='event';prefs.tab='event';setCur(ev.id);closeSheet();toast('Event created. Add teams and a schedule, or start logging.')}})}
+   persistEvent(ev);S.tab='event';prefs.tab='event';setCur(ev.id);closeSheet();toast('Event created. Add teams and a schedule, or start logging.')}}
 
 function parseTeams(text,prog){const out=[];for(const line of text.split(/\r?\n/)){const toks=line.split(/[\s,;\t]+/).filter(Boolean);if(!toks.length)continue;
  if(toks.every(t=>isTeam(t,prog)))toks.forEach(t=>out.push({num:t.toUpperCase(),name:''}));else if(isTeam(toks[0],prog))out.push({num:toks[0].toUpperCase(),name:line.trim().slice(toks[0].length).replace(/^[\s,;\t\-–]+/,'').slice(0,60)})}return out}
@@ -855,7 +860,7 @@ if('serviceWorker' in navigator&&!inClaude&&(location.protocol==='https:'||/^(lo
 /* ---------- events wiring ---------- */
 const A={
  tab:b=>{S.tab=b.dataset.tab;prefs.tab=S.tab;savePrefs();renderAll();window.scrollTo(0,0)},
- events:()=>openEvents(),close:()=>closeSheet(),
+ events:()=>{if(!curEv()&&!S.waitCloud){window.scrollTo(0,0);return}openEvents()},close:()=>closeSheet(),
  newBlank:()=>{const ev=curEv(),m=ev&&S.tab==='matches'&&ev.matches.find(x=>x.id===S.open.match);openEntry({match:m?m.label:'',team:S.tab==='teams'&&S.open.team||''})},
  openMatch:b=>{S.open.match=S.open.match===b.dataset.id?null:b.dataset.id;renderBody();if(S.open.match)jump('m-'+S.open.match)},
  openTeam:b=>{S.open.team=S.open.team===b.dataset.t?null:b.dataset.t;renderBody()},
@@ -895,8 +900,6 @@ addEventListener('online',()=>{S.offline=false;renderSync()});addEventListener('
 
 /* ---------- boot ---------- */
 rebuildEvents();renderAll();
-if(!inClaude&&!myRooms().length&&!/^#join/.test(location.hash)&&[...S.events.values()].every(e=>e.sample)&&!sessionFlag())setTimeout(()=>{if($('#sheet').hidden)openEvents()},250);
-function sessionFlag(){try{if(sessionStorage.getItem('rl.picked'))return true;sessionStorage.setItem('rl.picked','1')}catch(e){}return false}
 const giveUp=setTimeout(()=>{if(S.waitCloud){S.waitCloud=false;rebuildEvents();shellKey='';renderAll()}},10000);
 function cloudReady(){if(S.answered.shared&&(S.answered.mine||!S.uid)&&S.waitCloud){S.waitCloud=false;clearTimeout(giveUp)}rebuildEvents();renderAll()}
 function watchList(where,path){S.db.collection(path).onSnapshot(snap=>{const m=new Map();for(const d of snap.docs){const x=d.data();if(x&&x.kind==='event')m.set(d.id,cleanEvent(x,d.id,where))}
