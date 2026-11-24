@@ -1,0 +1,21 @@
+rules_version = '2';
+// Security rules for VEX Ref Log live sharing.
+// Each shared event lives at rooms/{code}. Anyone signed in (anonymously) who
+// knows the 8-character code can read and write that event, but nobody can
+// list rooms, so codes can't be discovered.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /rooms/{room} {
+      allow get, create, update, delete: if request.auth != null && room.matches('^[A-Z2-9]{8}$');
+      allow list: if false;
+
+      match /entries/{entry} {
+        allow read, write: if request.auth != null;
+      }
+      match /people/{person} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == person;
+      }
+    }
+  }
+}

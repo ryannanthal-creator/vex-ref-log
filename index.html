@@ -197,6 +197,20 @@ details.adv summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;
 .divs{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px 12px}
 .evitem[disabled]{opacity:.6}
 #reBrowse .seg{margin-bottom:4px}
+.upnext{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;background:var(--amber);color:#211800;border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.upnext .lbl2{font-weight:700;font-size:14px}
+.upnext b{font:700 26px/1 'Barlow Condensed',sans-serif}
+.upnext button{margin-left:auto;background:#211800;color:#fff;border:0;border-radius:9px;min-height:40px;padding:0 14px;font-weight:700}
+.live{margin:-4px 0 10px}
+.mrow.next{border:2px solid var(--amber)}
+.score{font:700 15px/1.2 'Barlow Condensed',sans-serif;white-space:nowrap}
+.score .r{color:var(--red)}.score .b{color:var(--blue)}.score .w{font-size:17px;text-decoration:underline;text-underline-offset:2px}
+.tmeta{display:block;font-size:13px;color:var(--mut)}
+.facts{display:grid;gap:2px;font-size:15px;margin:2px 0 6px}
+.facts span{color:var(--mut)}
+.codebox{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;background:var(--surf);border-radius:10px;padding:10px 14px;margin:8px 0}
+.codebox span{font-size:14px;color:var(--mut)}
+.codebox b{font:700 34px/1 'Barlow Condensed',sans-serif;letter-spacing:.06em}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:#16171b;color:#fff;border-radius:12px;padding:10px 12px 10px 16px;display:flex;gap:12px;align-items:center;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgb(0 0 0/.25)}
 .toast[hidden]{display:none}
 .toast button{background:none;border:1px solid #5b5f69;color:var(--amber);border-radius:8px;min-height:38px;padding:0 12px;font-weight:700}
@@ -228,6 +242,7 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const str=(v,n)=>typeof v==='string'?v.trim().slice(0,n):(typeof v==='number'?String(v).slice(0,n):'');
 const arr=v=>Array.isArray(v)?v:[];
 const num=v=>typeof v==='number'&&isFinite(v)?v:0;
+const nn=v=>typeof v==='number'&&isFinite(v)?v:null;
 const okSeg=s=>typeof s==='string'&&/^[A-Za-z0-9_\-.~:@+]{1,80}$/.test(s)&&s!=='.'&&s!=='..';
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 
@@ -264,7 +279,7 @@ const PROG={
 const rulesFor=ev=>PROG[ev.program].rules.concat(ev.customRules.map(r=>({code:r.code,label:r.label||'Added rule',sec:'Added for this event',custom:true})));
 const ruleMap=ev=>new Map(rulesFor(ev).map(r=>[r.code,r]));
 const OUTS=['minor','major','disabled','note'],OL={minor:'Minor',major:'Major',disabled:'Disabled',note:'Note'};
-const WL={shared:'Shared',mine:'Only you',device:'This device'};
+const WL={shared:'Shared',mine:'Only you',device:'This device',room:'Shared live'};
 
 /* ---------- storage ---------- */
 const LS={ok:true,get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){this.ok=false;return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.ok=false}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
@@ -272,24 +287,26 @@ const prefs=LS.get('rl.prefs',{})||{};
 const savePrefs=()=>LS.set('rl.prefs',prefs);
 let devEvents=LS.get('rl.events',null);
 const devEntries={};
-const S={events:new Map(),entries:[],cur:prefs.cur||null,tab:prefs.tab||'matches',open:{match:null,team:null},mq:'',mround:'all',tq:'',tsort:'num',rq:'',f:{out:'all',rule:'',ref:'',q:'',sort:'new'},db:null,uid:null,dl:null,canWrite:true,pending:0,entPending:false,entStale:false,entErr:'',offline:typeof navigator!=='undefined'&&navigator.onLine===false,waitCloud:!!(prefs.cur&&prefs.curWhere&&prefs.curWhere!=='device'),boundKey:null,unsub:null,answered:{shared:false,mine:false}};
-const cloudEv={shared:new Map(),mine:new Map()};
+const S={events:new Map(),entries:[],cur:prefs.cur||null,tab:prefs.tab||'matches',open:{match:null,team:null},mq:'',mround:'all',tq:'',tsort:'num',rq:'',f:{out:'all',rule:'',ref:'',q:'',sort:'new'},db:null,uid:null,dl:null,canWrite:true,pending:0,entPending:false,entStale:false,entErr:'',offline:typeof navigator!=='undefined'&&navigator.onLine===false,waitCloud:!!(prefs.cur&&prefs.curWhere&&prefs.curWhere!=='device'),boundKey:null,unsub:null,answered:{shared:false,mine:false},fb:null,fbUid:'',fbErr:'',people:[],unsubPeople:null};
+const cloudEv={shared:new Map(),mine:new Map(),room:new Map()};
 
 function cleanEvent(d,id,where){d=d||{};const T=s=>str(s,10).toUpperCase().replace(/\s+/g,'');
  return{id,where,kind:'event',name:str(d.name,80)||'Untitled event',program:PROG[d.program]?d.program:'V5RC',sku:str(d.sku,40),date:str(d.date,10),sample:!!d.sample,
-  teams:arr(d.teams).map(t=>({num:T(t&&t.num),name:str(t&&t.name,60)})).filter(t=>t.num),
-  matches:arr(d.matches).map(m=>({id:okSeg(m&&m.id)?m.id:uid(),label:str(m&&m.label,20).toUpperCase(),time:str(m&&m.time,12),red:arr(m&&m.red).map(T).filter(Boolean).slice(0,3),blue:arr(m&&m.blue).map(T).filter(Boolean).slice(0,3)})).filter(m=>m.label),
+  teams:arr(d.teams).map(t=>({num:T(t&&t.num),name:str(t&&t.name,60),org:str(t&&t.org,80),city:str(t&&t.city,40),region:str(t&&t.region,40),robot:str(t&&t.robot,40),grade:str(t&&t.grade,24)})).filter(t=>t.num),
+  matches:arr(d.matches).map(m=>({id:okSeg(m&&m.id)?m.id:uid(),label:str(m&&m.label,20).toUpperCase(),time:str(m&&m.time,12),red:arr(m&&m.red).map(T).filter(Boolean).slice(0,3),blue:arr(m&&m.blue).map(T).filter(Boolean).slice(0,3),sched:str(m&&m.sched,40),field:str(m&&m.field,20),scored:!!(m&&m.scored),rs:nn(m&&m.rs),bs:nn(m&&m.bs)})).filter(m=>m.label),
   customRules:arr(d.customRules).map(r=>({code:str(r&&r.code,12).toUpperCase(),label:str(r&&r.label,80)})).filter(r=>r.code),created:num(d.created),updated:num(d.updated),
-  re:d.re&&typeof d.re==='object'&&num(d.re.id)?{id:num(d.re.id),div:num(d.re.div),divs:arr(d.re.divs).map(x=>({id:num(x&&x.id),name:str(x&&x.name,40)})).filter(x=>x.id).slice(0,40)}:null}}
+  re:d.re&&typeof d.re==='object'&&num(d.re.id)?{id:num(d.re.id),div:num(d.re.div),divs:arr(d.re.divs).map(x=>({id:num(x&&x.id),name:str(x&&x.name,40)})).filter(x=>x.id).slice(0,40)}:null,
+  info:d.info&&typeof d.info==='object'?{venue:str(d.info.venue,80),address:str(d.info.address,120),city:str(d.info.city,60),region:str(d.info.region,60),country:str(d.info.country,60),level:str(d.info.level,30),type:str(d.info.type,30),start:str(d.info.start,10),end:str(d.info.end,10)}:null}}
 function cleanEntry(d,id){if(!d||!okSeg(id))return null;
  if(d.kind==='auton')return{id,kind:'auton',matchId:str(d.matchId,80),match:str(d.match,20),bonus:['red','blue','tie'].includes(d.bonus)?d.bonus:'',awpRed:!!d.awpRed,awpBlue:!!d.awpBlue,at:num(d.at)};
  const team=str(d.team,10).toUpperCase();if(!team)return null;
  return{id,kind:'entry',team,match:str(d.match,20).toUpperCase(),outcome:OUTS.includes(d.outcome)?d.outcome:'note',affecting:!!d.affecting,rules:arr(d.rules).map(r=>str(r,12).toUpperCase()).filter(Boolean).slice(0,8),notes:str(d.notes,600),ref:str(d.ref,40),at:num(d.at)}}
-const evBody=ev=>({kind:'event',name:ev.name,program:ev.program,sku:ev.sku,date:ev.date,sample:ev.sample,teams:ev.teams,matches:ev.matches,customRules:ev.customRules,created:ev.created,updated:ev.updated,re:ev.re||null});
+const evBody=ev=>({kind:'event',name:ev.name,program:ev.program,sku:ev.sku,date:ev.date,sample:ev.sample,teams:ev.teams,matches:ev.matches,customRules:ev.customRules,created:ev.created,updated:ev.updated,re:ev.re||null,info:ev.info||null});
 const entBody=e=>{const b={...e};delete b.id;return b};
-const evDoc=ev=>ev.where==='shared'?'events/'+ev.id:'data/users/'+S.uid+'/'+ev.id;
+const evDoc=ev=>ev.where==='shared'?'events/'+ev.id:ev.where==='room'?'rooms/'+ev.id:'data/users/'+S.uid+'/'+ev.id;
+const storeFor=ev=>ev&&ev.where==='room'?S.fb:S.db;
 const entColl=ev=>evDoc(ev)+'/entries';
-const writable=ev=>!!ev&&(ev.where==='device'||(!!S.db&&S.canWrite));
+const writable=ev=>!!ev&&(ev.where==='device'||(ev.where==='room'?!!S.fb:(!!S.db&&S.canWrite)));
 function devLoad(id){if(!devEntries[id])devEntries[id]=arr(LS.get('rl.ent.'+id,[])).map(e=>cleanEntry(e,e&&e.id)).filter(Boolean);return devEntries[id]}
 const devSave=id=>LS.set('rl.ent.'+id,(devEntries[id]||[]).map(e=>({...e})));
 const devSaveEvents=()=>LS.set('rl.events',devEvents);
@@ -306,39 +323,39 @@ function seedSample(){
  devSaveEvents();devSave('sample1');prefs.seeded=true;S.cur='sample1';prefs.cur='sample1';prefs.curWhere='device';S.open.match='sm6';savePrefs()}
 if(!devEvents||typeof devEvents!=='object'){devEvents={};if(!prefs.seeded)seedSample()}
 
-function rebuildEvents(){const m=new Map();for(const[id,d]of Object.entries(devEvents))m.set(id,cleanEvent(d,id,'device'));for(const w of['mine','shared'])for(const[id,e]of cloudEv[w])m.set(id,e);S.events=m;
+function rebuildEvents(){const m=new Map();for(const[id,d]of Object.entries(devEvents))m.set(id,cleanEvent(d,id,'device'));for(const w of['mine','shared','room'])for(const[id,e]of cloudEv[w])m.set(id,e);S.events=m;
  if(!m.has(S.cur)&&!S.waitCloud){const f=[...m.values()][0];S.cur=f?f.id:null;prefs.cur=S.cur;prefs.curWhere=f?f.where:null;savePrefs()}
  ensureBound()}
 const curEv=()=>S.events.get(S.cur)||null;
-function ensureBound(){const ev=curEv();const k=ev?ev.where+':'+ev.id:'';if(k===S.boundKey)return;S.boundKey=k;bindEntries(ev)}
+function ensureBound(){const ev=curEv();const k=ev?ev.where+':'+ev.id:'';if(k===S.boundKey)return;S.boundKey=k;bindEntries(ev);presence(ev);setTimeout(()=>liveTick(true),300)}
 function bindEntries(ev){if(S.unsub){S.unsub();S.unsub=null}S.entStale=false;S.entErr='';S.entPending=false;
  if(!ev){S.entries=[];return}
  if(ev.where==='device'){S.entries=devLoad(ev.id);return}
- S.entries=[];if(!S.db)return;const id=ev.id;
+ S.entries=[];const st=storeFor(ev);if(!st)return;const id=ev.id;
  const t=setTimeout(()=>{S.entStale=true;renderSync()},10000);
- S.unsub=S.db.collection(entColl(ev)).onSnapshot(snap=>{if(S.cur!==id)return;S.entries=snap.docs.map(d=>cleanEntry(d.data(),d.id)).filter(Boolean);S.entPending=snap.metadata.hasPendingWrites;if(!snap.metadata.fromCache){clearTimeout(t);S.entStale=false}renderAll()},err=>{clearTimeout(t);S.entErr=(err&&err.code)||'unavailable';renderAll()})}
+ S.unsub=st.collection(entColl(ev)).onSnapshot(snap=>{if(S.cur!==id)return;S.entries=snap.docs.map(d=>cleanEntry(d.data(),d.id)).filter(Boolean);S.entPending=snap.metadata.hasPendingWrites;if(!snap.metadata.fromCache){clearTimeout(t);S.entStale=false}renderAll()},err=>{clearTimeout(t);S.entErr=(err&&err.code)||'unavailable';renderAll()})}
 
 const wq=new Map();
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
-function dbWrite(path,fn){S.pending++;renderSync();
- const run=async()=>{const ref=S.db.doc(path);try{await fn(ref)}catch(e){const c=e&&e.code;if(c==='unavailable'||c==='resource_exhausted'){await pause(600+Math.random()*900);try{await fn(ref)}catch(e2){fail(e2)}}else fail(e)}};
+function dbWrite(st,path,fn){S.pending++;renderSync();
+ const run=async()=>{const ref=st.doc(path);try{await fn(ref);return true}catch(e){const c=e&&e.code;if(c==='unavailable'||c==='resource_exhausted'||c==='resource-exhausted'){await pause(600+Math.random()*900);try{await fn(ref);return true}catch(e2){fail(e2)}}else fail(e)}return false};
  const p=(wq.get(path)||Promise.resolve()).then(run).finally(()=>{S.pending--;if(wq.get(path)===p)wq.delete(path);renderSync()});
  wq.set(path,p);return p}
-function fail(e){const c=e&&e.code;if(c==='invalid_argument'){S.canWrite=false;toast('This page is view-only for you, so that change wasn’t saved')}else if(c==='quota_exceeded')toast('Storage is full. Export and delete an old event.');else toast('Couldn’t save. Check your connection and try again.');renderAll()}
+function fail(e){const c=e&&e.code;if(c==='invalid_argument'){S.canWrite=false;toast('This page is view-only for you, so that change wasn’t saved')}else if(c==='quota_exceeded')toast('Storage is full. Export and delete an old event.');else if(c==='permission-denied')toast('The sharing service refused that change. Check its setup in the README.');else toast('Couldn’t save. Check your connection and try again.');renderAll()}
 
 function persistEvent(ev){ev.updated=Date.now();if(!ev.created)ev.created=ev.updated;
- if(ev.where==='device'){devEvents[ev.id]=evBody(ev);devSaveEvents()}else{cloudEv[ev.where].set(ev.id,ev);const b=evBody(ev);dbWrite(evDoc(ev),r=>r.set(b))}
+ if(ev.where==='device'){devEvents[ev.id]=evBody(ev);devSaveEvents()}else{cloudEv[ev.where].set(ev.id,ev);const b=evBody(ev);dbWrite(storeFor(ev),evDoc(ev),r=>r.set(b))}
  rebuildEvents();renderAll()}
 function persistEntry(e,quiet){const ev=curEv();if(!ev)return;const i=S.entries.findIndex(x=>x.id===e.id);if(i>=0)S.entries[i]=e;else S.entries.push(e);
- if(ev.where==='device'){devEntries[ev.id]=S.entries;devSave(ev.id)}else{const b=entBody(e);dbWrite(entColl(ev)+'/'+e.id,r=>r.set(b))}
+ if(ev.where==='device'){devEntries[ev.id]=S.entries;devSave(ev.id)}else{const b=entBody(e);dbWrite(storeFor(ev),entColl(ev)+'/'+e.id,r=>r.set(b))}
  if(!quiet)renderAll()}
 function removeEntry(id){const ev=curEv();if(!ev)return;S.entries=S.entries.filter(x=>x.id!==id);
- if(ev.where==='device'){devEntries[ev.id]=S.entries;devSave(ev.id)}else dbWrite(entColl(ev)+'/'+id,r=>r.delete());renderAll()}
+ if(ev.where==='device'){devEntries[ev.id]=S.entries;devSave(ev.id)}else dbWrite(storeFor(ev),entColl(ev)+'/'+id,r=>r.delete());renderAll()}
 async function clearEntries(ev){if(ev.where==='device'){devEntries[ev.id]=[];devSave(ev.id);if(S.cur===ev.id)S.entries=devEntries[ev.id];renderAll();return}
- let ids;try{ids=(await S.db.collection(entColl(ev)).get()).docs.map(d=>d.id)}catch(e){ids=S.cur===ev.id?S.entries.map(x=>x.id):[]}
- for(const id of ids)await dbWrite(entColl(ev)+'/'+id,r=>r.delete())}
+ const st=storeFor(ev);if(!st)return;let ids;try{ids=(await st.collection(entColl(ev)).get()).docs.map(d=>d.id)}catch(e){ids=S.cur===ev.id?S.entries.map(x=>x.id):[]}
+ for(const id of ids)await dbWrite(st,entColl(ev)+'/'+id,r=>r.delete())}
 async function deleteEvent(ev){await clearEntries(ev);
- if(ev.where==='device'){delete devEvents[ev.id];devSaveEvents();LS.del('rl.ent.'+ev.id);delete devEntries[ev.id]}else{cloudEv[ev.where].delete(ev.id);await dbWrite(evDoc(ev),r=>r.delete())}
+ if(ev.where==='device'){delete devEvents[ev.id];devSaveEvents();LS.del('rl.ent.'+ev.id);delete devEntries[ev.id]}else{const st=storeFor(ev);cloudEv[ev.where].delete(ev.id);if(st)await dbWrite(st,evDoc(ev),r=>r.delete());if(ev.where==='room'){if(S.fbUid)S.fb.doc('rooms/'+ev.id+'/people/'+S.fbUid).delete().catch(()=>{});forgetRoom(ev.id)}}
  if(S.cur===ev.id){S.cur=null;S.waitCloud=false}rebuildEvents();renderAll();toast('Event deleted')}
 
 /* ---------- derived data ---------- */
@@ -373,15 +390,24 @@ const emptyBox=(h,p,btn,tab)=>`<div class="empty"><h2>${h}</h2><p>${p}</p>${btn?
 
 const V={};
 V.matches={
- shell:ev=>`${ev.sample?'<p class="sample">Example event with sample entries. Pick a real event from the event menu at the top.</p>':''}<div class="tools"><div class="seg" role="group" aria-label="Round">${[['all','All'],['Q','Quals'],['E','Elims'],['P','Practice']].map(([k,l])=>`<button data-act="mround" data-k="${k}" aria-pressed="${S.mround===k}">${l}</button>`).join('')}</div><input id="mq" type="search" placeholder="Find a team or match" value="${esc(S.mq)}" aria-label="Find a team or match" autocomplete="off"></div><div id="body"></div>`,
+ shell:ev=>`${ev.sample?'<p class="sample">Example event with sample entries. Pick a real event from the event menu at the top.</p>':''}<div class="tools"><div class="seg" role="group" aria-label="Round">${[['all','All'],['Q','Quals'],['E','Elims'],['P','Practice']].map(([k,l])=>`<button data-act="mround" data-k="${k}" aria-pressed="${S.mround===k}">${l}</button>`).join('')}</div><select id="mfield" aria-label="Field" hidden></select><input id="mq" type="search" placeholder="Find a team or match" value="${esc(S.mq)}" aria-label="Find a team or match" autocomplete="off"></div><div id="body"></div>`,
  body:ev=>{if(!ev.matches.length)return ev.sku?`<div class="empty"><h2>No schedule yet</h2><p>Pull it from VEX Events once it’s posted, paste it in the Event tab, or log by team with + Entry.</p><div class="actions"><button class="primary" data-act="reUpdate">Load schedule from VEX Events</button><button data-act="tab" data-tab="event">Paste a schedule</button></div></div>`:emptyBox('No schedule yet','Load an event from VEX Events, paste your match list in the Event tab, or log by team with + Entry. A schedule is optional.','Add a schedule','event');
-  const q=S.mq.trim().toUpperCase(),ST=stats();
-  const ms=ev.matches.filter(m=>(S.mround==='all'||roundOf(m.label)===S.mround)&&(!q||m.label.startsWith(q)||m.red.concat(m.blue).some(t=>t.includes(q))));
-  return ms.length?ms.map(m=>matchRow(ev,m,ST)).join(''):`<p class="none">No match fits “${esc(S.mq)}”.</p>`}};
-function matchRow(ev,m,ST){const P=PROG[ev.program],open=S.open.match===m.id,n=viol().filter(e=>e.match===m.label).length;
+  const q=S.mq.trim().toUpperCase(),ST=stats(),fld=mfieldOf(ev),pool=ev.matches.filter(m=>!fld||m.field===fld);
+  const nx=ev.re||ev.matches.some(m=>m.scored)?pool.find(m=>!m.scored):null,L=liveOn(ev)?live(ev):null;
+  const ms=pool.filter(m=>(S.mround==='all'||roundOf(m.label)===S.mround)&&(!q||m.label.startsWith(q)||m.red.concat(m.blue).some(t=>t.includes(q))));
+  const top=(nx?`<div class="upnext"><span class="lbl2">Up next${fld?' on '+esc(fld):''}</span><b>${esc(nx.label)}</b><span>${esc(mtime(nx))}${!fld&&nx.field?' · '+esc(nx.field):''}</span><button data-act="gotoMatch" data-id="${esc(nx.id)}">Open</button></div>`:'')
+   +(L?`<p class="hint live" role="status">${L.err?esc(L.err):L.done?`Live from VEX Events, checked ${ago(L.done)}.`:'Checking VEX Events…'} <button type="button" class="linkb" data-act="liveNow">Refresh now</button></p>`:'');
+  return top+(ms.length?ms.map(m=>matchRow(ev,m,ST,nx,fld)).join(''):`<p class="none">No match fits${S.mq?` “${esc(S.mq)}”`:' these filters'}.</p>`)},
+ after:ev=>{const s=$('#mfield');if(!s||document.activeElement===s)return;const F=[...new Set(ev.matches.map(m=>m.field).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  s.hidden=F.length<2;s.innerHTML='<option value="">All fields</option>'+F.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join('');s.value=F.includes(mfieldOf(ev))?mfieldOf(ev):''}};
+const mfieldOf=ev=>{const f=(prefs.mfield||{})[ev.id]||'';return ev.matches.some(m=>m.field===f)?f:''};
+const mtime=m=>{if(m.sched){const d=new Date(m.sched);if(!isNaN(d))return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}return m.time||''};
+const ago=t=>{const m=Math.round((Date.now()-t)/6e4);return m<1?'just now':m<60?m+' min ago':Math.round(m/60)+' h ago'};
+function matchRow(ev,m,ST,nx,fld){const P=PROG[ev.program],open=S.open.match===m.id,n=viol().filter(e=>e.match===m.label).length,tm=mtime(m);
+ const sc=m.scored&&(m.rs!=null||m.bs!=null)?(P.blue?`<small class="score"><span class="r${m.rs>m.bs?' w':''}">${m.rs??'–'}</span>–<span class="b${m.bs>m.rs?' w':''}">${m.bs??'–'}</span></small>`:`<small class="score">${m.rs??''} pts</small>`):'';
  const ch=ts=>ts.map(t=>`<span class="tchip"><b>${esc(t)}</b>${pips(ST.get(t))}</span>`).join('')||'<span class="tbd">TBD</span>';
  const al=P.blue?`<span class="all red">${ch(m.red)}</span><span class="all blue">${ch(m.blue)}</span>`:`<span class="all tw">${ch(m.red)}</span>`;
- return `<article class="mrow${open?' open':''}" id="m-${esc(m.id)}"><button class="mhead" data-act="openMatch" data-id="${esc(m.id)}" aria-expanded="${open}"><span class="mlab"><b${m.label.length>6?' class="l2"':m.label.length>3?' class="l1"':''}>${esc(m.label)}</b>${m.time?`<small>${esc(m.time)}</small>`:''}${n?`<small class="n">${n} logged</small>`:''}</span>${al}</button>${open?matchDetail(ev,m,ST):''}</article>`}
+ return `<article class="mrow${open?' open':''}${nx&&nx.id===m.id?' next':''}" id="m-${esc(m.id)}"><button class="mhead" data-act="openMatch" data-id="${esc(m.id)}" aria-expanded="${open}"><span class="mlab"><b${m.label.length>6?' class="l2"':m.label.length>3?' class="l1"':''}>${esc(m.label)}</b>${tm?`<small>${esc(tm)}</small>`:''}${!fld&&m.field?`<small>${esc(m.field)}</small>`:''}${sc}${n?`<small class="n">${n} logged</small>`:''}</span>${al}</button>${open?matchDetail(ev,m,ST):''}</article>`}
 function matchDetail(ev,m,ST){const P=PROG[ev.program];
  const blocks=m.red.map(t=>[t,P.blue?'red':'tw']).concat(m.blue.map(t=>[t,'blue'])).map(([t,side])=>{const s=ST.get(t),here=(s?s.list:[]).filter(e=>e.match===m.label).sort((a,b)=>a.at-b.at);
   return `<section class="tb ${side}"><div class="tbh"><button class="tlink" data-act="gotoTeam" data-t="${esc(t)}"><b>${esc(t)}</b><span>${esc(teamName(ev,t))}</span></button><span class="tsum">${sumText(s)}</span></div>${warnBox(warns(s?s.list:[]))}${here.map(entRow).join('')}${quick(t,m.label)}</section>`}).join('');
@@ -390,17 +416,20 @@ function autonBlock(m){const a=autonFor(m)||{},b=a.bonus||'';
  return `<section class="tb auton"><div class="tbh"><b class="h">Autonomous</b></div><div class="lbl">Bonus</div><div class="seg wide" role="group" aria-label="Autonomous Bonus">${[['red','Red'],['tie','Tie'],['blue','Blue'],['','None']].map(([k,l])=>`<button class="b-${k||'none'}" data-act="bonus" data-id="${esc(m.id)}" data-k="${k}" aria-pressed="${!!a.id&&b===k}">${l}</button>`).join('')}</div><div class="lbl">Win Point</div><div class="seg wide" role="group" aria-label="Autonomous Win Point">${['red','blue'].map(sd=>`<button class="b-${sd}" data-act="awp" data-id="${esc(m.id)}" data-k="${sd}" aria-pressed="${!!a[sd==='red'?'awpRed':'awpBlue']}">${sd==='red'?'Red':'Blue'} AWP</button>`).join('')}</div><p class="hint">For your records only. Scores still go into Tournament Manager.</p></section>`}
 
 V.teams={
- shell:()=>`<div class="tools"><input id="tq" type="search" placeholder="Find a team" value="${esc(S.tq)}" aria-label="Find a team" autocomplete="off"><label class="inl">Sort<select id="tsort"><option value="num">Team number</option><option value="most">Most flagged</option></select></label></div><div id="body"></div>`,
+ shell:()=>`<div class="tools"><input id="tq" type="search" placeholder="Find a team" value="${esc(S.tq)}" aria-label="Find a team" autocomplete="off"><label class="inl">Sort<select id="tsort"><option value="num">Team number</option><option value="rank">Rank</option><option value="most">Most flagged</option></select></label></div><div id="body"></div>`,
  mount:()=>{$('#tsort').value=S.tsort},
  body:ev=>{const ST=stats(),q=S.tq.trim().toUpperCase();let ts=allTeams(ev);if(q)ts=ts.filter(t=>t.includes(q)||teamName(ev,t).toUpperCase().includes(q));
-  const sc=s=>s?s.major*3+s.disabled*3+s.minor:0;if(S.tsort==='most')ts.sort((a,b)=>sc(ST.get(b))-sc(ST.get(a))||tsort(a,b));
+  const sc=s=>s?s.major*3+s.disabled*3+s.minor:0,LR=liveOn(ev)?live(ev):{},RK=LR.rank||{},rk=t=>RK[t]&&RK[t].rank!=null?RK[t].rank:1e9;
+  if(S.tsort==='most')ts.sort((a,b)=>sc(ST.get(b))-sc(ST.get(a))||tsort(a,b));if(S.tsort==='rank')ts.sort((a,b)=>rk(a)-rk(b)||tsort(a,b));
   if(!ts.length)return q?`<p class="none">No team fits “${esc(S.tq)}”.</p>`:emptyBox('No teams yet','Paste the team list in the Event tab, or type a new team number when you log an entry.','Add teams','event');
-  return ts.map(t=>teamRow(ev,t,ST.get(t))).join('')}};
-function teamRow(ev,t,s){const open=S.open.team===t,w=warns(s?s.list:[]);
+  return ts.map(t=>teamRow(ev,t,ST.get(t),LR)).join('')}};
+function teamRow(ev,t,s,LR){const open=S.open.team===t,w=warns(s?s.list:[]),R=LR&&LR.rank&&LR.rank[t],SK=LR&&LR.skills&&LR.skills[t],TI=ev.teams.find(x=>x.num===t)||{},P=PROG[ev.program];
+ const rline=R?`#${R.rank}`+(P.blue&&R.w!=null?` · ${R.w}-${R.l??0}-${R.t??0}`:R.avg!=null?` · avg ${R.avg}`:''):'';
  const c=s?[s.minor&&`<span class="tag t-minor">${s.minor} Minor</span>`,s.major&&`<span class="tag t-major">${s.major} Major</span>`,s.disabled&&`<span class="tag t-disabled">${s.disabled} Disabled</span>`,s.note&&`<span class="tag t-note">${s.note} Note${s.note>1?'s':''}</span>`].filter(Boolean).join(''):'';
  let det='';if(open){const ms=ev.matches.filter(m=>m.red.includes(t)||m.blue.includes(t)),list=(s?s.list:[]).slice().sort((a,b)=>b.at-a.at);
-  det=`<div class="tdet">${warnBox(w)}${list.length?list.map(entRow).join(''):'<p class="none">Nothing logged for this team.</p>'}${ms.length?`<div class="lbl">Matches</div><div class="chips">${ms.map(m=>`<button class="chip" data-act="gotoMatch" data-id="${esc(m.id)}">${esc(m.label)}${m.time?` <small>${esc(m.time)}</small>`:''}</button>`).join('')}</div>`:''}${quick(t,'')}</div>`}
- return `<article class="trow${open?' open':''}" id="t-${esc(t)}"><button class="thead" data-act="openTeam" data-t="${esc(t)}" aria-expanded="${open}"><span class="tn"><b>${esc(t)}</b><small>${esc(teamName(ev,t))}</small></span><span class="cts">${c}${w.length?'<span class="wdot" title="Repeated Minors">!</span>':''}</span></button>${det}</article>`}
+  const loc=[TI.city,TI.region].filter(Boolean).join(', '),facts=[TI.org&&esc(TI.org)+(loc?` <span>· ${esc(loc)}</span>`:''),!TI.org&&loc&&esc(loc),(TI.robot||TI.grade)&&[TI.robot&&'Robot: '+esc(TI.robot),TI.grade&&esc(TI.grade)].filter(Boolean).join(' · '),R&&`Rank #${R.rank}`+(P.blue&&R.w!=null?` · ${R.w}-${R.l??0}-${R.t??0}`:'')+(R.wp!=null?` <span>· WP ${R.wp} · AP ${R.ap??0} · SP ${R.sp??0}</span>`:R.avg!=null?` <span>· average ${R.avg}${R.hi!=null?', high '+R.hi:''}</span>`:''),SK&&'Skills: '+[SK.driver&&`Driver ${SK.driver.score??'–'}${SK.driver.rank?` (#${SK.driver.rank})`:''}`,SK.prog&&`Autonomous ${SK.prog.score??'–'}${SK.prog.rank?` (#${SK.prog.rank})`:''}`].filter(Boolean).join(' · ')].filter(Boolean);
+  det=`<div class="tdet">${facts.length?`<div class="facts">${facts.map(f=>`<div>${f}</div>`).join('')}</div>`:''}${warnBox(w)}${list.length?list.map(entRow).join(''):'<p class="none">Nothing logged for this team.</p>'}${ms.length?`<div class="lbl">Matches</div><div class="chips">${ms.map(m=>`<button class="chip" data-act="gotoMatch" data-id="${esc(m.id)}">${esc(m.label)}${mtime(m)?` <small>${esc(mtime(m))}</small>`:''}${m.scored&&m.rs!=null?` <small>${m.rs}–${m.bs??''}</small>`:''}</button>`).join('')}</div>`:''}${quick(t,'')}</div>`}
+ return `<article class="trow${open?' open':''}" id="t-${esc(t)}"><button class="thead" data-act="openTeam" data-t="${esc(t)}" aria-expanded="${open}"><span class="tn"><b>${esc(t)}</b><small>${esc(teamName(ev,t))}${rline?`<span class="tmeta">${esc(rline)}</span>`:''}</small></span><span class="cts">${c}${w.length?'<span class="wdot" title="Repeated Minors">!</span>':''}</span></button>${det}</article>`}
 
 V.log={
  shell:()=>`<div class="tools"><div class="seg" role="group" aria-label="Outcome">${[['all','All']].concat(OUTS.map(o=>[o,OL[o]])).map(([k,l])=>`<button data-act="fout" data-k="${k}" aria-pressed="${S.f.out===k}">${l}</button>`).join('')}</div></div>
@@ -424,23 +453,24 @@ V.rules={
   const R=rulesFor(ev).filter(r=>!q||r.code.toLowerCase().startsWith(q)||r.label.toLowerCase().includes(q));if(!R.length)return`<p class="none">No rule fits “${esc(S.rq)}”.</p>`;
   return [...new Set(R.map(r=>r.sec))].map(s=>`<section class="rsec"><h3>${esc(s)}</h3>${R.filter(r=>r.sec===s).map(r=>`<div class="rrow"><b class="rc">&lt;${esc(r.code)}&gt;</b><span>${esc(r.label)}</span>${cnt[r.code]?`<button class="cnt" data-act="ruleLog" data-k="${esc(r.code)}" title="Show these in the log">${cnt[r.code]} logged</button>`:'<span></span>'}${r.custom?`<button class="x" data-act="delRule" data-k="${esc(r.code)}" aria-label="Remove ${esc(r.code)}">×</button>`:`<a href="${P.qa}${encodeURIComponent(r.code)}" target="_blank" rel="noopener">Q&amp;A</a>`}</div>`).join('')}</section>`).join('')}};
 
-function whereText(ev){return ev.where==='device'?(LS.ok?'Kept in this browser on this device only. Export a backup before you clear the browser or switch devices.':'This browser isn’t keeping data. Export a backup before you close the page.'):ev.where==='mine'?'Saved to your account. Only you can see it, on any device where you open this page.':'Shared: anyone who can open this page sees it, and people with edit access can log entries. Every referee’s entries sync live.'}
+function whereText(ev){return ev.where==='room'?'Shared live: everyone who joins with the event code sees every entry as it’s logged. It keeps working offline and catches up when the connection returns.':ev.where==='device'?(LS.ok?'Kept in this browser on this device only. Export a backup before you clear the browser or switch devices.':'This browser isn’t keeping data. Export a backup before you close the page.'):ev.where==='mine'?'Saved to your account. Only you can see it, on any device where you open this page.':'Shared: anyone who can open this page sees it, and people with edit access can log entries. Every referee’s entries sync live.'}
 V.event={
  shell:ev=>{const P=PROG[ev.program],ex=P.blue?(P.red===2?'Q1  9:00 AM  1121A 4512X  3310C 7110Z':'Q1  9:00 AM  UCF1  BLRS'):'Q1  9:00 AM  1121A 4512X';
-  return `<section class="card"><h2>Event</h2><form id="evForm" class="grid2"><label>Name<input id="eName" value="${esc(ev.name)}" maxlength="80" required></label><label>Program<select id="eProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===ev.program?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="eDate" type="date" value="${esc(ev.date)}"></label><label>VEX Events SKU <span class="opt">optional</span><input id="eSku" value="${esc(ev.sku)}" maxlength="40" placeholder="Leave blank for scrimmages"></label><div class="actions"><button class="primary">Save event</button></div></form><p class="hint">${whereText(ev)}</p></section>
-  <section class="card"><h2>VEX Events</h2>${ev.sku?`<p class="hint">Linked to ${esc(ev.sku)}. Pull the latest teams and schedule, for example once the schedule is posted or after alliance selection. Entries you’ve logged are never changed.</p>${ev.re&&ev.re.divs.length>1?`<label>Division<select id="reDiv">${ev.re.divs.map(d=>`<option value="${d.id}"${d.id===ev.re.div?' selected':''}>${esc(d.name)}</option>`).join('')}</select></label>`:''}<div class="actions"><button class="primary" data-act="reUpdate">Update from VEX Events</button></div>`:`<p class="hint">Add the event’s VEX Events SKU above, then pull its teams and schedule from here.</p><div class="actions"><button data-act="events">Pick a VEX Events event</button></div>`}<p class="hint" id="reMsg" role="status"></p>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenLine()}</section>
+  return `${shareCard(ev)}<section class="card"><h2>Event</h2><form id="evForm" class="grid2"><label>Name<input id="eName" value="${esc(ev.name)}" maxlength="80" required></label><label>Program<select id="eProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===ev.program?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="eDate" type="date" value="${esc(ev.date)}"></label><label>VEX Events SKU <span class="opt">optional</span><input id="eSku" value="${esc(ev.sku)}" maxlength="40" placeholder="Leave blank for scrimmages"></label><div class="actions"><button class="primary">Save event</button></div></form><p class="hint">${whereText(ev)}</p></section>
+  <section class="card"><h2>VEX Events</h2>${infoHtml(ev)}${ev.sku?`<p class="hint">Linked to ${esc(ev.sku)}. While the event is open here, the schedule, fields and scores refresh about every 90 seconds, and rankings and skills every 5 minutes. Update pulls everything now, including new teams. Entries you’ve logged are never changed.</p>${ev.re&&ev.re.divs.length>1?`<label>Division<select id="reDiv">${ev.re.divs.map(d=>`<option value="${d.id}"${d.id===ev.re.div?' selected':''}>${esc(d.name)}</option>`).join('')}</select></label>`:''}<div class="actions"><button class="primary" data-act="reUpdate">Update from VEX Events</button></div>`:`<p class="hint">Add the event’s VEX Events SKU above, then pull its teams and schedule from here.</p><div class="actions"><button data-act="events">Pick a VEX Events event</button></div>`}<p class="hint" id="reMsg" role="status"></p>${inClaude?`<p class="note">${CLAUDE_NOTE}</p>`:''}${tokenLine()}</section>
   <section class="card"><h2>Your name on entries</h2><input id="eRef" value="${esc(prefs.ref||'')}" placeholder="e.g. Sam, Field 2" maxlength="40" aria-label="Your name on entries"><p class="hint">Kept on this device and added to each entry you log, so co-referees can tell who called what.</p></section>
   <section class="card"><h2>Teams <span class="count" id="eTeamCount"></span></h2><p class="hint">Paste team numbers: one per line with an optional team name, or all on one line separated by spaces or commas.</p><textarea id="eTeams" rows="4" placeholder="1121A Gear Grinders&#10;3310C&#10;4512X"></textarea><div class="actions"><button class="primary" data-act="addTeams">Add teams</button></div><div id="eTeamList" class="chips" style="margin-top:12px"></div></section>
   <section class="card"><h2>Match schedule <span class="count" id="eMatchCount"></span></h2><p class="hint">One match per line: the match name, an optional time, then ${P.blue?`${P.red===2?'two red and two blue teams':'the red team and the blue team'}`:'the two teamwork teams'}. Commas, tabs or spaces all work, so you can paste rows from a spreadsheet or the Tournament Manager schedule.</p><pre class="ex">${esc(ex)}</pre><textarea id="eSched" rows="5" placeholder="${esc(ex)}"></textarea><div class="actions"><button class="primary" data-act="schedAdd">Add matches</button><button data-act="schedRep">Replace schedule</button><button class="danger" data-act="schedClr">Clear schedule</button></div><p class="hint" id="eSchedMsg"></p></section>
   <section class="card"><h2>Back up or merge</h2><p class="hint">Export any time. Importing a backup from another device merges it into this event; anything already here is kept.</p><div class="actions"><button data-act="export" data-k="csv">Export CSV</button><button data-act="export" data-k="json">Export backup</button><button data-act="import">Import backup</button></div></section>
   <section class="card"><h2>Delete</h2><p class="hint">This can’t be undone. Export a backup first.</p><div class="actions"><button class="danger" data-act="clearEntries">Delete all entries</button><button class="danger" data-act="delEvent">Delete this event</button></div></section>`},
- after:ev=>{const c=$('#eTeamCount');if(!c)return;const ts=allTeams(ev);c.textContent=ts.length;$('#eMatchCount').textContent=ev.matches.length;
+ after:ev=>{const hn=$('#hereNow');if(hn){const h=hereNow();hn.textContent=h.length?'Here now: '+h.map(p=>p.name+(p.me?' (you)':'')).join(', '):'Nobody else is here right now.'}const c=$('#eTeamCount');if(!c)return;const ts=allTeams(ev);c.textContent=ts.length;$('#eMatchCount').textContent=ev.matches.length;
   $('#eTeamList').innerHTML=ts.map(t=>`<span class="chip static"><b>${esc(t)}</b>${ev.teams.some(x=>x.num===t)&&!ev.matches.some(m=>m.red.includes(t)||m.blue.includes(t))&&!viol().some(e=>e.team===t)?`<button class="x" data-act="rmTeam" data-t="${esc(t)}" aria-label="Remove ${esc(t)}">×</button>`:''}</span>`).join('')}};
 
 /* ---------- rendering ---------- */
 let shellKey='';
 function renderSync(){const el=$('#sync'),ev=curEv();if(!el)return;let c='',t='';
  if(!ev)t=S.waitCloud?'Connecting…':'';else if(ev.where==='device'){t=LS.ok?'This device':'Not saving: export a backup';c=LS.ok?'':'bad'}
+ else if(ev.where==='room'){if(!S.fb){t=S.fbErr?'Sharing unavailable':'Connecting…';c=S.fbErr?'bad':'busy'}else if(S.pending>0||S.entPending){t=S.offline?'Offline, will sync':'Saving…';c='busy'}else if(S.entErr){t='Can’t reach shared data';c='bad'}else{const n=hereNow().length;t='Shared live'+(n>1?` · ${n} here`:'')}}
  else if(!S.db){t='Connecting…';c='busy'}else if(!S.canWrite){t='View only';c='bad'}else if(S.pending>0||S.entPending){t=S.offline?'Offline, will sync':'Saving…';c='busy'}else if(S.entErr){t='Can’t reach saved data';c='bad'}else if(S.entStale){t='May be out of date';c='busy'}else t=WL[ev.where]+' · synced';
  el.className='sync '+c;el.innerHTML=t?`<i></i>${esc(t)}`:''}
 function renderHeader(){const ev=curEv();$('#evName').textContent=ev?ev.name:(S.waitCloud?'Loading…':'VEX Ref Log');$('#evMeta').textContent=ev?`${PROG[ev.program].label} · ${PROG[ev.program].game} · ${fmtD(ev.date)}`:'Match anomaly log';
@@ -498,7 +528,7 @@ function openEntry(o){const ev=curEv();if(!ev){openEvents();return}if(!writable(
   if(old)q('#fDel').onclick=()=>{const keep={...old};removeEntry(old.id);closeSheet();toast(`Deleted ${OL[keep.outcome]} for ${keep.team}`,{label:'Undo',fn:()=>persistEntry(keep)})};
   q('#entForm').onsubmit=s=>{s.preventDefault();const t=q('#fTeam').value.trim().toUpperCase().replace(/\s+/g,''),o=out(),err=m=>{q('#fErr').textContent=m};
    if(!t)return err('Enter a team number.');if((o==='minor'||o==='major')&&!sel.length)return err('Add the rule you cited. Minor and Major violations need a rule number.');
-   const ref=q('#fRef').value.trim();prefs.ref=ref;savePrefs();
+   const ref=q('#fRef').value.trim(),was=prefs.ref;prefs.ref=ref;savePrefs();if(ref!==was)beatNow();
    persistEntry({...e,team:t,match:q('#fMatch').value.trim().toUpperCase(),outcome:o,affecting:o==='major'&&q('#fAff').checked,rules:sel.slice(),notes:q('#fNotes').value.trim(),ref,at:old?old.at:Date.now()});closeSheet();toast(`${old?'Updated':'Logged'} ${OL[o]} for ${t}`)};
   draw();if(!e.team)setTimeout(()=>q('#fTeam').focus(),30)})}
 function setAuton(mid,patch){const ev=curEv();if(!writable(ev)){toast('This event is view-only for you');return}const m=ev.matches.find(x=>x.id===mid);if(!m)return;
@@ -508,10 +538,11 @@ function setAuton(mid,patch){const ev=curEv();if(!writable(ev)){toast('This even
 function whereRadios(){const cloud=!!S.db&&S.canWrite;return `<fieldset class="where"><legend>Keep it</legend>${cloud?`<label class="rad"><input type="radio" name="nWhere" value="shared" checked><span><b>Shared</b>Anyone you share this page with sees it live. People with edit access can log entries.</span></label>${S.uid?'<label class="rad"><input type="radio" name="nWhere" value="mine"><span><b>Only you</b>Saved to your account, on any device.</span></label>':''}`:''}<label class="rad"><input type="radio" name="nWhere" value="device"${cloud?'':' checked'}><span><b>This device</b>Stays in this browser. Works without signing in.</span></label></fieldset>`}
 function openEvents(){const evs=[...S.events.values()].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||b.created-a.created),cp=(curEv()||{}).program||'V5RC';
  sheet(`<h2 id="sheetTitle">Events</h2>${evs.length?'<h3>Your events</h3>':''}<div class="evlist">${evs.map(e=>`<button class="evitem${e.id===S.cur?' cur':''}" data-act="pickEv" data-id="${esc(e.id)}"><b>${esc(e.name)}</b><span>${PROG[e.program].label} · ${fmtD(e.date)} · ${WL[e.where]}</span></button>`).join('')}</div>
+ ${roomsOn()?'<h3>Join a shared event</h3><form id="joinF" class="row"><label class="grow">Event code<input id="jCode" placeholder="ABCD-EF23" autocomplete="off" autocapitalize="characters" maxlength="12"></label><button class="primary">Join</button></form><p class="err" id="jErr" role="alert"></p>':''}
  <h3>VEX Events</h3><div id="reBrowse"></div>
  <details class="adv"><summary>Set up an event by hand</summary><p class="hint">For scrimmages, practice nights, league sessions and anything not on VEX Events.</p><form id="newEv" class="grid2"><label>Name<input id="nName" required maxlength="80" placeholder="Saturday scrimmage"></label><label>Program<select id="nProg">${Object.entries(PROG).map(([k,p])=>`<option value="${k}"${k===cp?' selected':''}>${p.long}</option>`).join('')}</select></label><label>Date<input id="nDate" type="date" value="${today()}"></label><label>VEX Events SKU <span class="opt">optional</span><input id="nSku" maxlength="40"></label>
  ${whereRadios()}
- <p class="err" id="nErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary">Create event</button></div></form></details>`,c=>{mountBrowse(c.querySelector('#reBrowse'));
+ <p class="err" id="nErr" role="alert"></p><div class="actions"><span class="sp"></span><button type="button" data-act="close">Cancel</button><button class="primary">Create event</button></div></form></details>`,c=>{mountBrowse(c.querySelector('#reBrowse'));const jf=c.querySelector('#joinF');if(jf)jf.onsubmit=async s=>{s.preventDefault();const m=await joinRoom(c.querySelector('#jCode').value);if(m)c.querySelector('#jErr').textContent=m};
   c.querySelector('#newEv').onsubmit=s=>{s.preventDefault();const name=c.querySelector('#nName').value.trim();if(!name){c.querySelector('#nErr').textContent='Give the event a name.';return}
    const where=(c.querySelector('input[name=nWhere]:checked')||{}).value||'device';const ev=cleanEvent({name,program:c.querySelector('#nProg').value,date:c.querySelector('#nDate').value,sku:c.querySelector('#nSku').value,created:Date.now()},uid(),where);
    persistEvent(ev);S.tab='event';prefs.tab='event';setCur(ev.id);closeSheet();toast('Event created. Add teams and a schedule, or start logging.')}})}
@@ -586,10 +617,11 @@ function reLabel(m){const r=+m.round,i=+m.instance||1,n=+m.matchnum||0,pre={3:'Q
  return(String(m.name||'').replace(/qualifier\s*#?/i,'Q').replace(/practice\s*#?/i,'P').replace(/quarter-?finals?\s*#?/i,'QF').replace(/semi-?finals?\s*#?/i,'SF').replace(/finals?\s*#?/i,'F').replace(/\s+/g,'')||'M'+n).slice(0,20)}
 function reMatches(list,prog){const P=PROG[prog];
  return list.map(m=>{const side=c=>arr(m&&m.alliances).filter(a=>a&&a.color===c).flatMap(a=>arr(a.teams)).map(t=>str(t&&t.team&&(t.team.name||t.team.code),10).toUpperCase().replace(/\s+/g,'')).filter(Boolean);
-  let red=side('red'),blue=side('blue');if(!P.blue){red=red.concat(blue);blue=[]}const d=m.scheduled?new Date(m.scheduled):null;
-  return{label:reLabel(m).toUpperCase(),time:d&&!isNaN(d)?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'',red:red.slice(0,3),blue:blue.slice(0,3),k:[RO[+m.round]??9,+m.matchnum||0,+m.instance||0]}})
+  const sc=c=>{const a=arr(m&&m.alliances).find(x=>x&&x.color===c);return a?nn(a.score):null};let red=side('red'),blue=side('blue'),rs=sc('red'),bs=sc('blue');if(!P.blue){red=red.concat(blue);blue=[];rs=rs??bs;bs=null}
+  return{label:reLabel(m).toUpperCase(),time:'',sched:str(m&&m.scheduled,40),red:red.slice(0,3),blue:blue.slice(0,3),field:str(m&&m.field,20),scored:!!(m&&m.scored),rs,bs,k:[RO[+m.round]??9,+m.matchnum||0,+m.instance||0]}})
  .filter(m=>m.label).sort((a,b)=>a.k[0]-b.k[0]||a.k[1]-b.k[1]||a.k[2]-b.k[2]).map(({k,...m})=>m)}
-const reTeams=async id=>(await reGet(`/events/${id}/teams`,'')).map(t=>({num:str(t&&t.number,10).toUpperCase().replace(/\s+/g,''),name:str(t&&t.team_name,60)})).filter(t=>t.num);
+const reTeams=async id=>(await reGet(`/events/${id}/teams`,'')).map(t=>({num:str(t&&t.number,10).toUpperCase().replace(/\s+/g,''),name:str(t&&t.team_name,60),org:str(t&&t.organization,80),city:str(t&&t.location&&t.location.city,40),region:str(t&&t.location&&t.location.region,40),robot:str(t&&t.robot_name,40),grade:str(t&&t.grade,24)})).filter(t=>t.num);
+const reInfoOf=e=>{const l=(e&&e.location)||{};return{venue:str(l.venue,80),address:str(l.address_1,120),city:str(l.city,60),region:str(l.region,60),country:str(l.country,60),level:str(e&&e.level,30),type:str(e&&e.event_type,30),start:str(e&&e.start,10),end:str(e&&e.end,10)}};
 async function reFind(sku){const e=(await reGet('/events','sku%5B%5D='+encodeURIComponent(sku)))[0];if(!e||!num(e.id))throw new ReErr('notfound');return e}
 const reDivs=e=>arr(e.divisions).map(d=>({id:num(d&&d.id),name:str(d&&d.name,40)||'Division'})).filter(d=>d.id);
 const reSched=(id,div,prog)=>div?reGet(`/events/${id}/divisions/${div}/matches`,'').then(L=>reMatches(L,prog)):Promise.resolve([]);
@@ -619,12 +651,13 @@ function askToken(next){sheet(`<h2 id="sheetTitle">VEX Events API token</h2>${in
 async function reUpdate(){const ev=curEv();if(!ev)return;if(!writable(ev))return toast('This event is view-only for you');if(!ev.sku)return toast('Add the VEX Events SKU in the Event tab first');if(!reTok())return askToken(reUpdate);
  const say=t=>{const m=$('#reMsg');if(m)m.textContent=t;else toast(t)};say('Updating from VEX Events…');
  try{let id=ev.re&&ev.re.id,divs=ev.re?ev.re.divs:[],div=ev.re?ev.re.div:0;
-  if(!id){const e=await reFind(ev.sku);id=e.id;divs=reDivs(e);div=(divs[0]||{}).id||0}
+  let e=null;try{e=await reFind(ev.sku)}catch(x){if(!id||(x&&['auth','blocked','rate','notoken'].includes(x.k)))throw x}
+  if(e){id=e.id;divs=reDivs(e);if(!divs.some(d=>d.id===div))div=(divs[0]||{}).id||0;ev.info=reInfoOf(e)}
   const sel=$('#reDiv');if(sel&&+sel.value)div=+sel.value;
   const teams=await reTeams(id),L=await reSched(id,div,ev.program);let nt=0;
-  for(const t of teams){const x=ev.teams.find(y=>y.num===t.num);if(x){if(t.name&&!x.name)x.name=t.name}else{ev.teams.push(t);nt++}}
+  for(const t of teams){const x=ev.teams.find(y=>y.num===t.num);if(x)Object.assign(x,t,{name:t.name||x.name});else{ev.teams.push(t);nt++}}
   const before=new Set(ev.matches.map(m=>m.label));applySched(ev,L,false);const nm=L.filter(m=>!before.has(m.label)).length;
-  ev.re={id,div,divs};persistEvent(ev);say(`Up to date: ${nt} new team${nt===1?'':'s'} and ${nm} new match${nm===1?'':'es'}. The schedule has ${L.length} match${L.length===1?'':'es'}${L.length?'':' (not posted yet)'}.`)}
+  ev.re={id,div,divs};persistEvent(ev);liveTick(true);say(`Up to date: ${nt} new team${nt===1?'':'s'} and ${nm} new match${nm===1?'':'es'}. The schedule has ${L.length} match${L.length===1?'':'es'}${L.length?'':' (not posted yet)'}.`)}
  catch(err){say(reMsg(err))}}
 
 const RE_PIDS={V5RC:1,VURC:4,VIQRC:41};
@@ -674,11 +707,83 @@ function pickRE(e,prog,rowEl,stat){const have=[...S.events.values()].filter(x=>x
  reImport(e,prog,(e.divs[0]||{}).id||0,rowEl,stat)}
 async function reImport(e,prog,div,btn,stat){if(btn&&btn.dataset.have){setCur(btn.dataset.have);closeSheet();return}if(btn&&btn.disabled)return;
  const dv=e.divs.find(d=>d.id===div),many=e.divs.length>1&&dv;if(btn)btn.disabled=true;if(stat)stat(`Loading ${e.name}…`);
- try{const teams=await reTeams(e.id),matches=await reSched(e.id,div,prog),where=S.db&&S.canWrite?'shared':'device';
-  const ev=cleanEvent({name:str(e.name,80-(many?dv.name.length+3:0))+(many?' · '+dv.name:''),program:prog,date:str(e.start,10),sku:e.sku,re:{id:e.id,div,divs:e.divs},teams,matches:matches.map(m=>({...m,id:uid()})),created:Date.now()},uid(),where);
+ try{const teams=await reTeams(e.id),matches=await reSched(e.id,div,prog),where=S.db&&S.canWrite?'shared':'device';let full=null;try{full=await reFind(e.sku)}catch(x){}
+  const ev=cleanEvent({name:str(e.name,80-(many?dv.name.length+3:0))+(many?' · '+dv.name:''),program:prog,date:str(e.start,10),sku:e.sku,re:{id:e.id,div,divs:e.divs},info:full?reInfoOf(full):null,teams,matches:matches.map(m=>({...m,id:uid()})),created:Date.now()},uid(),where);
   persistEvent(ev);S.tab=matches.length?'matches':'teams';prefs.tab=S.tab;setCur(ev.id);closeSheet();
   toast(`Loaded ${teams.length} team${teams.length===1?'':'s'} and ${matches.length} match${matches.length===1?'':'es'}${matches.length?'':'. The schedule isn’t posted yet'}`)}
  catch(err){if(btn)btn.disabled=false;const m=reMsg(err);if(stat)stat(m);else toast(m)}}
+
+function infoHtml(ev){const I=ev.info;if(!I)return'';const place=[I.address,I.city,I.region].filter(Boolean).join(', ');
+ return `<div class="facts">${I.venue?`<div><b>${esc(I.venue)}</b></div>`:''}${place?`<div>${esc(place)}</div>`:''}<div><span>${esc([I.start&&fmtRange(I.start,I.end),I.level,I.type].filter(Boolean).join(' · '))}</span></div></div>`}
+
+/* ---------- live VEX Events data ---------- */
+const LV={};
+const live=ev=>LV[ev.id]||(LV[ev.id]={at:0,done:0,err:'',rank:null,skills:null,slowAt:0,busy:false});
+const liveOn=ev=>!!ev&&!!ev.re&&!!ev.re.id&&!inClaude&&!!reTok();
+const teamKey=r=>str(r&&r.team&&(r.team.name||r.team.code),10).toUpperCase().replace(/\s+/g,'');
+function parseRank(L){const o={};for(const r of L){const t=teamKey(r);if(t)o[t]={rank:nn(r.rank),w:nn(r.wins),l:nn(r.losses),t:nn(r.ties),wp:nn(r.wp),ap:nn(r.ap),sp:nn(r.sp),avg:nn(r.average_points),hi:nn(r.high_score)}}return o}
+function parseSkills(L){const o={};for(const r of L){const t=teamKey(r);if(!t)continue;const k=/prog|auto/i.test(String(r&&r.type))?'prog':'driver',cur=(o[t]||(o[t]={}))[k],v={score:nn(r.score),rank:nn(r.rank)};if(!cur||(v.score??-1)>(cur.score??-1))o[t][k]=v}return o}
+const schedSig=ms=>JSON.stringify(ms.map(m=>[m.label,m.time,m.sched,m.red,m.blue,m.field,m.scored,m.rs,m.bs]));
+async function liveTick(force){const ev=curEv();if(!liveOn(ev))return;const L=live(ev),now=Date.now();if(L.busy||(document.hidden&&!force)||(!force&&now-L.at<85e3))return;
+ L.busy=true;L.at=now;const id=ev.re.id,div=ev.re.div,evId=ev.id;
+ try{if(writable(ev)&&div){const M=await reSched(id,div,ev.program),cur=curEv();if(cur&&cur.id===evId&&M.length){const before=schedSig(cur.matches);applySched(cur,M,false);if(schedSig(cur.matches)!==before)persistEvent(cur)}}
+  if(force||now-L.slowAt>3e5){L.slowAt=now;const[rk,sk]=await Promise.all([div?reGet(`/events/${id}/divisions/${div}/rankings`,'').catch(()=>null):null,reGet(`/events/${id}/skills`,'').catch(()=>null)]);if(rk)L.rank=parseRank(rk);if(sk)L.skills=parseSkills(sk)}
+  L.err=''}catch(e){L.err=reMsg(e)}finally{L.busy=false;L.done=Date.now();const c=curEv();if(c&&c.id===evId&&(S.tab==='matches'||S.tab==='teams'))renderBody()}}
+setInterval(()=>liveTick(false),15e3);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)liveTick(false)});
+
+/* ---------- live sharing between devices (Firebase) ---------- */
+const FB_CFG=(()=>{const c=window.REFLOG_CONFIG&&window.REFLOG_CONFIG.firebase;return c&&typeof c==='object'&&c.projectId&&c.apiKey?c:null})();
+const roomsOn=()=>!inClaude&&!!FB_CFG;
+const CODE_AB='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const newCode=()=>{const a=new Uint8Array(8);crypto.getRandomValues(a);return[...a].map(x=>CODE_AB[x%32]).join('')};
+const fmtCode=c=>c.slice(0,4)+'-'+c.slice(4);
+const myRooms=()=>arr(prefs.rooms).filter(c=>typeof c==='string'&&/^[A-Z2-9]{8}$/.test(c));
+const roomSubs=new Map();
+function wrapFS(F,fs){const sd=x=>({id:x.id,exists:x.exists(),data:()=>x.data(),metadata:x.metadata});
+ const D=p=>{const r=F.doc(fs,p);return{id:r.id,path:p,get:async()=>sd(await F.getDoc(r)),set:d=>F.setDoc(r,d),update:d=>F.updateDoc(r,d),delete:()=>F.deleteDoc(r),onSnapshot:(n,e)=>F.onSnapshot(r,{includeMetadataChanges:true},x=>n(sd(x)),e)}};
+ const C=p=>{const r=F.collection(fs,p),qs=x=>({docs:x.docs.map(sd),size:x.size,empty:x.empty,metadata:x.metadata});return{path:p,doc:id=>D(p+'/'+(id||uid())),get:async()=>qs(await F.getDocs(r)),onSnapshot:(n,e)=>F.onSnapshot(r,{includeMetadataChanges:true},x=>n(qs(x)),e)}};
+ return{doc:D,collection:C}}
+async function initFirebase(){if(!roomsOn())return;
+ try{const B='https://www.gstatic.com/firebasejs/10.12.2/',[FA,FU,FF]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
+  const app=FA.initializeApp(FB_CFG);let fs;try{fs=FF.initializeFirestore(app,{localCache:FF.persistentLocalCache({tabManager:FF.persistentMultipleTabManager()})})}catch(e){fs=FF.getFirestore(app)}
+  const cred=await FU.signInAnonymously(FU.getAuth(app));S.fbUid=(cred&&cred.user&&cred.user.uid)||'';S.fb=wrapFS(FF,fs);S.fbErr='';myRooms().forEach(watchRoom);S.boundKey=null;ensureBound()}
+ catch(e){S.fbErr=String((e&&(e.code||e.message))||'error').slice(0,80);if(prefs.curWhere==='room')S.waitCloud=false}
+ rebuildEvents();shellKey='';renderAll();
+ const h=/^#join[=-]([A-Za-z0-9-]{8,10})$/.exec(location.hash);if(h){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}const m=await joinRoom(h[1]);if(m)toast(m)}}
+function watchRoom(code){if(!S.fb||roomSubs.has(code))return;
+ roomSubs.set(code,S.fb.doc('rooms/'+code).onSnapshot(x=>{
+   if(x.exists)cloudEv.room.set(code,cleanEvent(x.data(),code,'room'));
+   else if(!x.metadata.fromCache&&!wq.has('rooms/'+code)){const had=cloudEv.room.get(code);forgetRoom(code);if(had)toast(`${had.name} was deleted by another referee`)}
+   if(code===S.cur)S.waitCloud=false;rebuildEvents();renderAll()},
+  err=>{S.fbErr=String((err&&err.code)||'error');if(code===S.cur)S.waitCloud=false;rebuildEvents();renderAll()}))}
+function forgetRoom(code){prefs.rooms=myRooms().filter(c=>c!==code);savePrefs();const u=roomSubs.get(code);if(u){roomSubs.delete(code);u()}cloudEv.room.delete(code)}
+async function joinRoom(raw){const code=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(!/^[A-Z2-9]{8}$/.test(code))return'Event codes are 8 letters and numbers, like ABCD-EF23.';
+ if(!S.fb)return S.fbErr?`Live sharing couldn’t start (${S.fbErr}).`:'Live sharing is still connecting. Try again in a moment.';
+ if(!cloudEv.room.has(code)){try{const x=await S.fb.doc('rooms/'+code).get();if(!x.exists)return'No shared event has that code.'}catch(e){return'Couldn’t check that code. Check your connection.'}}
+ if(!myRooms().includes(code)){prefs.rooms=myRooms().concat(code);savePrefs()}
+ S.cur=code;prefs.cur=code;prefs.curWhere='room';savePrefs();S.open={match:null,team:null};S.waitCloud=!cloudEv.room.has(code);watchRoom(code);rebuildEvents();shellKey='';renderAll();
+ if(!$('#sheet').hidden)closeSheet();toast('Joined. Entries from everyone show up live.');return''}
+async function shareEvent(){const ev=curEv();if(!ev||ev.where!=='device')return;if(!S.fb)return toast(S.fbErr?`Live sharing couldn’t start (${S.fbErr}).`:'Live sharing is still connecting. Try again in a moment.');
+ const code=newCode(),body={...evBody(ev),sample:false,updated:Date.now()},ents=S.entries.slice(),devId=ev.id;
+ cloudEv.room.set(code,cleanEvent(body,code,'room'));prefs.rooms=myRooms().concat(code);savePrefs();
+ const writes=[dbWrite(S.fb,'rooms/'+code,r=>r.set(body))].concat(ents.map(e=>{const b=entBody(e);return dbWrite(S.fb,'rooms/'+code+'/entries/'+e.id,r=>r.set(b))}));
+ watchRoom(code);S.cur=code;prefs.cur=code;prefs.curWhere='room';savePrefs();S.waitCloud=false;rebuildEvents();shellKey='';renderAll();toast(`Shared. Event code ${fmtCode(code)}`);
+ const ok=(await Promise.all(writes)).every(Boolean);
+ if(ok){delete devEvents[devId];devSaveEvents();LS.del('rl.ent.'+devId);delete devEntries[devId];rebuildEvents();renderAll()}else toast('Some of it didn’t upload. Your copy on this device is kept.')}
+let hb=0,beatFn=null;
+const beatNow=()=>{if(beatFn)beatFn()};
+function presence(ev){if(S.unsubPeople){S.unsubPeople();S.unsubPeople=null}clearInterval(hb);beatFn=null;S.people=[];
+ if(!ev||ev.where!=='room'||!S.fb||!S.fbUid)return;const me=S.fb.doc('rooms/'+ev.id+'/people/'+S.fbUid);
+ const beat=()=>{if(!document.hidden)me.set({name:str(prefs.ref,40)||'Referee',at:Date.now()}).catch(()=>{})};beatFn=beat;beat();hb=setInterval(beat,9e4);
+ S.unsubPeople=S.fb.collection('rooms/'+ev.id+'/people').onSnapshot(x=>{S.people=x.docs.map(d=>({id:d.id,...(d.data()||{})}));renderSync();if(S.tab==='event')renderBody()},()=>{})}
+const hereNow=()=>{const t=Date.now()-4*6e4;return S.people.filter(p=>num(p.at)>t).map(p=>({me:p.id===S.fbUid,name:str(p.name,40)||'Referee'}))};
+const inviteLink=code=>location.origin+location.pathname+'#join='+code;
+async function copyText(text,what){try{await navigator.clipboard.writeText(text);toast(what+' copied')}catch(e){sheet(`<h2 id="sheetTitle">${esc(what)}</h2><textarea id="xText" rows="3" readonly>${esc(text)}</textarea><div class="actions"><span class="sp"></span><button type="button" data-act="close">Close</button></div>`,c=>{const t=c.querySelector('#xText');t.focus();t.select()})}}
+function shareCard(ev){if(inClaude||!(ev.where==='device'||ev.where==='room'))return'';
+ if(!FB_CFG)return'<section class="card"><h2>Live sharing</h2><p class="hint">Let other referees join this event from their own phones and see each other’s entries live. It needs a free Firebase project connected to this site first; the steps are in the README on GitHub.</p></section>';
+ if(ev.where==='room')return `<section class="card"><h2>Live sharing</h2><p class="hint">Send the code or invite link to your other referees. Everyone who joins sees every entry as it’s logged.</p><div class="codebox"><span>Event code</span><b>${esc(fmtCode(ev.id))}</b></div><div class="actions"><button class="primary" data-act="copyLink">Copy invite link</button><button data-act="copyCode">Copy code</button></div><p class="hint" id="hereNow" role="status"></p><div class="actions"><button class="danger" data-act="leaveRoom">Leave on this device</button></div></section>`;
+ return `<section class="card"><h2>Live sharing</h2><p class="hint">Share this event so other referees can join with a code and log into it from their own phones. Everyone sees each other’s entries live.</p><div class="actions"><button class="primary" data-act="shareEv"${S.fb?'':' disabled'}>Share this event</button></div>${S.fbErr?`<p class="err">Live sharing couldn’t start (${esc(S.fbErr)}). Check the Firebase setup in the README.</p>`:S.fb?'':'<p class="hint">Connecting to the sharing service…</p>'}</section>`}
 
 /* ---------- events wiring ---------- */
 const A={
@@ -700,7 +805,9 @@ const A={
  addTeams:()=>{const ev=curEv();if(!writable(ev))return toast('This event is view-only for you');const ta=$('#eTeams'),L=parseTeams(ta.value,ev.program);if(!L.length)return toast('No team numbers found');let n=0;
   for(const t of L){const x=ev.teams.find(y=>y.num===t.num);if(x){if(t.name)x.name=t.name}else{ev.teams.push(t);n++}}ta.value='';persistEvent(ev);toast(`Added ${n} team${n===1?'':'s'}`)},
  schedAdd:()=>sched(false),schedRep:()=>sched(true),
- reOpen:()=>openRE(),reUpdate:()=>reUpdate(),reForget:()=>{LS.del('rl.reToken');if(!$('#sheet').hidden)closeSheet();shellKey='';renderAll();toast('Token removed from this browser')},
+ reOpen:()=>openRE(),reUpdate:()=>reUpdate(),liveNow:()=>{const ev=curEv();if(ev&&liveOn(ev)){live(ev).done=0;renderBody();liveTick(true)}},
+ shareEv:()=>shareEvent(),copyLink:()=>{const ev=curEv();if(ev&&ev.where==='room')copyText(inviteLink(ev.id),'Invite link')},copyCode:()=>{const ev=curEv();if(ev&&ev.where==='room')copyText(fmtCode(ev.id),'Event code')},
+ leaveRoom:async()=>{const ev=curEv();if(!ev||ev.where!=='room')return;if(await ask('Leave this shared event?','It’s removed from this device only. Everyone else keeps it, and you can rejoin with the code.','Leave')){if(S.fb&&S.fbUid)S.fb.doc('rooms/'+ev.id+'/people/'+S.fbUid).delete().catch(()=>{});forgetRoom(ev.id);S.cur=null;S.waitCloud=false;rebuildEvents();shellKey='';renderAll();toast('Left the event')}},reForget:()=>{LS.del('rl.reToken');if(!$('#sheet').hidden)closeSheet();shellKey='';renderAll();toast('Token removed from this browser')},
  schedClr:async()=>{const ev=curEv();if(!writable(ev)||!ev.matches.length)return;if(await ask('Clear the schedule?','Matches are removed. Logged entries stay in the log.','Clear schedule')){ev.matches=[];persistEvent(ev)}},
  clearEntries:async()=>{const ev=curEv();if(!writable(ev))return;if(await ask('Delete all entries?',`Every entry in ${ev.name} is removed for everyone who can see this event.`,'Delete entries')){await clearEntries(ev);toast('All entries deleted')}},
  delEvent:async()=>{const ev=curEv();if(!writable(ev))return;if(await ask('Delete this event?',`${ev.name}, its schedule and every entry are removed.`,'Delete event'))deleteEvent(ev)}};
@@ -712,7 +819,7 @@ $('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet()})
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet()});
 const IN={mq:v=>S.mq=v,tq:v=>S.tq=v,fq:v=>S.f.q=v,rq:v=>S.rq=v};
 $('#main').addEventListener('input',e=>{const f=IN[e.target.id];if(f){f(e.target.value);renderBody()}});
-$('#main').addEventListener('change',e=>{const id=e.target.id,v=e.target.value;if(id==='tsort'){S.tsort=v;renderBody()}else if(id==='frule'){S.f.rule=v;renderBody()}else if(id==='fref'){S.f.ref=v;renderBody()}else if(id==='fsort'){S.f.sort=v;renderBody()}else if(id==='eRef'){prefs.ref=v.trim();savePrefs();toast('Name saved')}});
+$('#main').addEventListener('change',e=>{const id=e.target.id,v=e.target.value;if(id==='tsort'){S.tsort=v;renderBody()}else if(id==='mfield'){const ev=curEv();if(ev){prefs.mfield={...(prefs.mfield||{}),[ev.id]:v};savePrefs();renderBody()}}else if(id==='frule'){S.f.rule=v;renderBody()}else if(id==='fref'){S.f.ref=v;renderBody()}else if(id==='fsort'){S.f.sort=v;renderBody()}else if(id==='eRef'){prefs.ref=v.trim();savePrefs();toast('Name saved');beatNow()}});
 $('#main').addEventListener('submit',e=>{e.preventDefault();const ev=curEv();if(!ev)return;if(!writable(ev))return toast('This event is view-only for you');
  if(e.target.id==='evForm'){ev.name=$('#eName').value.trim()||ev.name;ev.program=$('#eProg').value;ev.date=$('#eDate').value;const ns=$('#eSku').value.trim();if(ns!==ev.sku)ev.re=null;ev.sku=ns;ev.sample=false;persistEvent(ev);shellKey='';renderAll();toast('Event saved')}
  if(e.target.id==='ruleForm'){const code=$('#rcode').value.trim().toUpperCase().replace(/[<>\s]/g,'').slice(0,12),label=$('#rlabel').value.trim();if(!code)return;if(ruleMap(ev).has(code))return toast(`<${code}> is already in the list`);ev.customRules.push({code,label});persistEvent(ev);toast(`Added <${code}>`)}});
@@ -720,13 +827,14 @@ addEventListener('online',()=>{S.offline=false;renderSync()});addEventListener('
 
 /* ---------- boot ---------- */
 rebuildEvents();renderAll();
-if(!inClaude&&[...S.events.values()].every(e=>e.sample)&&!sessionFlag())setTimeout(()=>{if($('#sheet').hidden)openEvents()},250);
+if(!inClaude&&!myRooms().length&&!/^#join/.test(location.hash)&&[...S.events.values()].every(e=>e.sample)&&!sessionFlag())setTimeout(()=>{if($('#sheet').hidden)openEvents()},250);
 function sessionFlag(){try{if(sessionStorage.getItem('rl.picked'))return true;sessionStorage.setItem('rl.picked','1')}catch(e){}return false}
 const giveUp=setTimeout(()=>{if(S.waitCloud){S.waitCloud=false;rebuildEvents();shellKey='';renderAll()}},10000);
 function cloudReady(){if(S.answered.shared&&(S.answered.mine||!S.uid)&&S.waitCloud){S.waitCloud=false;clearTimeout(giveUp)}rebuildEvents();renderAll()}
 function watchList(where,path){S.db.collection(path).onSnapshot(snap=>{const m=new Map();for(const d of snap.docs){const x=d.data();if(x&&x.kind==='event')m.set(d.id,cleanEvent(x,d.id,where))}
   for(const[id,e]of cloudEv[where])if(!m.has(id)&&wq.has(evDoc(e)))m.set(id,e);cloudEv[where]=m;if(!snap.metadata.fromCache)S.answered[where]=true;cloudReady()},()=>{S.answered[where]=true;cloudReady()})}
-(async()=>{const c=window.claude;if(!c||!c.use){S.waitCloud=false;rebuildEvents();shellKey='';renderAll();return}
+initFirebase();
+(async()=>{const c=window.claude;if(!c||!c.use){if(!(roomsOn()&&prefs.curWhere==='room'))S.waitCloud=false;rebuildEvents();shellKey='';renderAll();return}
  try{const[db,user,dl]=await Promise.all([c.use('db'),c.use('user'),c.use('downloads')]);S.dl=dl||null;
   if(user){try{S.uid=await user.id()}catch(e){}try{if(await user.can('data.write')===false)S.canWrite=false}catch(e){}}
   if(db){S.db=db;watchList('shared','events');if(S.uid)watchList('mine','data/users/'+S.uid);S.boundKey=null;ensureBound()}else{S.waitCloud=false}
