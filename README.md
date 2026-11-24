@@ -16,14 +16,14 @@ It is a single self-contained `index.html` with no build step.
 
 ## Loading events from RobotEvents
 
-Open the event menu (tap the event name at the top). Once the device has a RobotEvents API token, it lists this season's events automatically: happening now, the next 7 days, and the following weeks (from a few days ago through about 10 weeks ahead). Switch between V5RC, VEX U and VIQRC, search by name, city or SKU, and filter by state or region (remembered on the device). Tap an event to load its team list and match schedule; events with several divisions ask which division. Events you already loaded open instead of loading twice. The list is cached on the device for 6 hours; **Refresh list** fetches it again. **Enter a SKU instead** handles anything outside that window.
+Open the event menu (tap the event name at the top). It lists this season's events automatically: happening now, the next 7 days, and the following weeks (from a few days ago through about 10 weeks ahead). Switch between V5RC, VEX U and VIQRC, search by name, city or SKU, and filter by state or region (remembered on the device). Tap an event to load its team list and match schedule; events with several divisions ask which division. Events you already loaded open instead of loading twice. The list is cached on the device for 6 hours; **Refresh list** fetches it again. **Enter a SKU instead** handles anything outside that window.
 
 On first use, the event menu opens by itself so you can pick an event.
 
 **Update from RobotEvents** in the Event tab pulls the latest teams and schedule later (for example once the schedule is posted, or after alliance selection) without touching logged entries.
 
-- Get a token at <https://www.robotevents.com/api/v2> under Request Access.
-- The token is saved only in the browser's `localStorage` on that device and is sent only to the RobotEvents API. It is never stored in shared events, backups, or this repository.
+- The site uses the RobotEvents API token in `config.js`, so nobody has to enter one. That token is public: anyone can read it from the site or this repo. To replace it, request a new token at <https://www.robotevents.com/api/v2> (Request Access), revoke the old one, and update `config.js`. Leave it empty to make each device enter its own.
+- A token entered on a device is saved only in that browser's `localStorage`, takes priority over the built-in one, and is never stored in shared events or backups. Tokens are sent only to the RobotEvents API.
 - Requests go straight from the browser to RobotEvents, so this works when the app is opened from GitHub Pages or as a local file. The claude.ai-hosted copy cannot reach other websites; load the event in a GitHub copy, export a backup, and import it there.
 - If RobotEvents does not accept requests from web pages, set a relay address under **Advanced** (for example a small serverless function that forwards requests to `https://www.robotevents.com/api/v2`).
 

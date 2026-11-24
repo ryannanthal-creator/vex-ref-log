@@ -219,6 +219,7 @@ details.adv summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;
 <main id="main"></main>
 <div id="sheet" class="sheet" hidden><div class="card2" id="sheetCard" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script src="config.js"></script>
 <script>
 {
 const $=s=>document.querySelector(s);
@@ -559,7 +560,9 @@ function merge(ev,d){const inc=cleanEvent(d.event,'import',ev.where);let nt=0,nm
 const RE_BASE='https://www.robotevents.com/api/v2';
 const inClaude=!!(window.claude&&window.claude.use);
 const CLAUDE_NOTE='This copy runs inside Claude, which blocks requests to other websites, so it can’t reach RobotEvents. Load the event in your GitHub copy of the app, export a backup there, and import it here.';
-const reTok=()=>{const t=LS.get('rl.reToken','');return typeof t==='string'?t:''};
+const savedTok=()=>{const t=LS.get('rl.reToken','');return typeof t==='string'?t:''};
+const builtinTok=()=>{const c=window.REFLOG_CONFIG;return c&&typeof c.robotEventsToken==='string'?c.robotEventsToken.trim():''};
+const reTok=()=>savedTok()||builtinTok();
 const reBase=()=>{const b=LS.get('rl.reBase','');return(typeof b==='string'&&/^https:\/\//.test(b)?b:RE_BASE).replace(/\/+$/,'')};
 class ReErr extends Error{constructor(k,s){super(k);this.k=k;this.s=s}}
 function reMsg(e){const k=e&&e.k;return k==='blocked'?(inClaude?CLAUDE_NOTE:'The browser couldn’t reach RobotEvents. You may be offline, or RobotEvents may not accept requests from web pages. If so, set a relay address under Advanced, or paste the teams and schedule in the Event tab.'):k==='auth'?'RobotEvents didn’t accept the API token. Check it, or request a new one.':k==='rate'?'RobotEvents is limiting requests right now. Wait a minute and try again.':k==='notfound'?'RobotEvents has no event with that SKU.':k==='notoken'?'Add your RobotEvents API token first.':`RobotEvents answered with an error${e&&e.s?' ('+e.s+')':''}. Try again in a moment.`}
@@ -584,7 +587,7 @@ const reTeams=async id=>(await reGet(`/events/${id}/teams`,'')).map(t=>({num:str
 async function reFind(sku){const e=(await reGet('/events','sku%5B%5D='+encodeURIComponent(sku)))[0];if(!e||!num(e.id))throw new ReErr('notfound');return e}
 const reDivs=e=>arr(e.divisions).map(d=>({id:num(d&&d.id),name:str(d&&d.name,40)||'Division'})).filter(d=>d.id);
 const reSched=(id,div,prog)=>div?reGet(`/events/${id}/divisions/${div}/matches`,'').then(L=>reMatches(L,prog)):Promise.resolve([]);
-const tokenLine=()=>reTok()?'<p class="hint">RobotEvents API token saved in this browser. <button type="button" class="linkb" data-act="reForget">Remove it</button></p>':'';
+const tokenLine=()=>savedTok()?'<p class="hint">RobotEvents API token saved in this browser. <button type="button" class="linkb" data-act="reForget">Remove it</button></p>':'';
 const tokenField=()=>reTok()?tokenLine():'<label>RobotEvents API token<input id="reTok" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your token"></label><p class="hint">Saved only in this browser and sent only to RobotEvents. Get one at <a href="https://www.robotevents.com/api/v2" target="_blank" rel="noopener">robotevents.com/api/v2</a> under Request Access.</p>';
 const keepToken=c=>{const i=c.querySelector('#reTok');if(i&&i.value.trim())LS.set('rl.reToken',i.value.trim().replace(/^Bearer\s+/i,''))};
 function openRE(){
